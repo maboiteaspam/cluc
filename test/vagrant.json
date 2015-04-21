@@ -1,0 +1,11 @@
+{
+  ":pool1":["vagrant"],
+  "vagrant":{
+    "ssh":{
+      "host":"localhost",
+      "username":"vagrant",
+      "port":2222,
+      "password":"vagrant"
+    }
+  }
+}
