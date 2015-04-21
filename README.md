@@ -5,7 +5,7 @@ Command line under control, a library to ease usage of command lines.
 # Demo
 
 with child_process
-```
+```js
     var Cluc = require('luc');
     var ClucProcess = Cluc.transports.process;
 
@@ -32,7 +32,7 @@ with child_process
 
 
 with ssh
-```
+```js
     var Cluc = require('luc');
     var ClucSsh = Cluc.transports.ssh;
 
