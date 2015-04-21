@@ -55,7 +55,7 @@ with ssh
     
     var ClucSsh = Cluc.transports.ssh;
     var ssh = new ClucSsh();
-    ClucSSh.getConnReady(server, function(err, conn){
+    ClucSsh.getConnReady(server, function(err, conn){
       if(err) return done(err);
       clucLine.run( new ClucSsh(conn) );
     });
@@ -69,13 +69,13 @@ with ssh
     * [`Cluc.run`](#run)
 
 * [`Cluc.transports.ssh`]()
-    * [`ClucSSh`](#ClucSSh)
-        * [`ClucSSh.getConnReady`](#getConnReady)
-        * [`ClucSSh.stream`](#stream)
-        * [`ClucSSh.run`](#run)
+    * [`ClucSsh`](#ClucSsh)
+        * [`ClucSsh.getConnReady`](#getConnReady)
+        * [`ClucSsh.stream`](#stream)
+        * [`ClucSsh.run`](#run)
 
 * [`Cluc.transports.process`]()
-    * [`ClucChildProcess`](#ClucSSh)
+    * [`ClucChildProcess`](#ClucSsh)
         * [`ClucChildProcess.stream`](#stream)
         * [`ClucChildProcess.run`](#run)
     
@@ -224,10 +224,10 @@ __Examples__
 ---------------------------------------
 
 
-<a name="ClucSSh" />
-### new ClucSSh()
+<a name="ClucSsh" />
+### new ClucSsh()
 
-ClucSSh constructor.
+ClucSsh constructor.
 
 __Arguments__
 
@@ -242,8 +242,8 @@ __Examples__
 ```
 
 
-<a name="ClucSSh.getConnReady" />
-### ClucSSh.getConnReady(server, fn)
+<a name="ClucSsh.getConnReady" />
+### ClucSsh.getConnReady(server, fn)
 
 __Static__
 
@@ -274,8 +274,8 @@ __Examples__
 ```
 
 
-<a name="ClucSSh.stream" />
-### ClucSSh.stream(cmd, fn)
+<a name="ClucSsh.stream" />
+### ClucSsh.stream(cmd, fn)
 
 Execute a command over ssh, return streams.
 
@@ -320,8 +320,8 @@ __Examples__
 ```
 
 
-<a name="ClucSSh.exec" />
-### ClucSSh.exec(cmd, fn)
+<a name="ClucSsh.exec" />
+### ClucSsh.exec(cmd, fn)
 
 Execute a command over ssh, return string.
 

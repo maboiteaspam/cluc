@@ -56,12 +56,12 @@ var Cluc = (function(){
 
 var SSH2Utils = require('ssh2-utils');
 var ssh = new SSH2Utils();
-var ClucSSh = (function(){
-  var ClucSSh = function(conn){
+var ClucSsh = (function(){
+  var ClucSsh = function(conn){
     this.cmds = [];
     this.conn = conn;
   };
-  ClucSSh.prototype.stream = function(cmdStr,then){
+  ClucSsh.prototype.stream = function(cmdStr,then){
     var conn = this.conn;
     try{
       ssh.run( conn, cmdStr, function(err, stream, stderr){
@@ -71,7 +71,7 @@ var ClucSSh = (function(){
       then(e);
     }
   };
-  ClucSSh.prototype.exec = function(cmdStr,then){
+  ClucSsh.prototype.exec = function(cmdStr,then){
     var conn = this.conn;
     try{
       ssh.exec( conn, cmdStr, function(err, stdout, stderr){
@@ -81,14 +81,14 @@ var ClucSSh = (function(){
       then(e);
     }
   };
-  ClucSSh.getConnReady = function(server,then){
+  ClucSsh.getConnReady = function(server,then){
     try{
       ssh.getConnReady( server, then);
     }catch(e){
       then(e);
     }
   };
-  return ClucSSh;
+  return ClucSsh;
 })();
 
 var child_process = require('child_process');
@@ -119,7 +119,7 @@ var ClucChildProcess = (function(){
 })();
 
 Cluc.transports = {
-  ssh:ClucSSh,
+  ssh:ClucSsh,
   process:ClucChildProcess
 };
 
