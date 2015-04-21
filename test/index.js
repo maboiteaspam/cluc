@@ -76,7 +76,6 @@ describe('cluc', function(){
     var server = servers.vagrant.ssh;
 
     var ClucSsh = Cluc.transports.ssh;
-    var ssh = new ClucSsh();
 
     var clucLine = (new Cluc())
       .exec('ls -alh' , function(err,stdout,stderr){
@@ -95,9 +94,9 @@ describe('cluc', function(){
         });
       });
 
-    ssh.getConnReady(server, function(err){
+    ClucSsh.getConnReady(server, function(err, conn){
       if(err) return done(err);
-      clucLine.run(ssh)
+      clucLine.run( new ClucSsh(conn) );
     });
   });
 });

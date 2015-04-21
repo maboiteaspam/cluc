@@ -55,9 +55,9 @@ with ssh
     
     var ClucSsh = Cluc.transports.ssh;
     var ssh = new ClucSsh();
-    ssh.getConnReady(server, function(err, conn){
+    ClucSSh.getConnReady(server, function(err, conn){
       if(err) return done(err);
-      clucLine.run( ssh );
+      clucLine.run( new ClucSsh(conn) );
     });
 ```
 
@@ -245,6 +245,8 @@ __Examples__
 <a name="ClucSSh.getConnReady" />
 ### ClucSSh.getConnReady(server, fn)
 
+__Static__
+
 Get ann shh connection ready to use.
 
 __Arguments__
@@ -265,10 +267,9 @@ __Examples__
     var clucLine = new Cluc();
     
     var ClucSsh = Cluc.transports.ssh;
-    var ssh = new ClucSsh();
-    ssh.getConnReady(server, function(err, conn){
+    ClucSsh.getConnReady(server, function(err, conn){
       if(err) return done(err);
-      clucLine.run( ssh );
+      clucLine.run( new ClucSsh(conn) );
     });
 ```
 
@@ -312,10 +313,9 @@ __Examples__
     });
     
     var ClucSsh = Cluc.transports.ssh;
-    var ssh = new ClucSsh();
-    ssh.getConnReady(server, function(err, conn){
+    ClucSsh.getConnReady(server, function(err, conn){
       if(err) return done(err);
-      clucLine.run( ssh );
+      clucLine.run( new ClucSsh(conn) );
     });
 ```
 
@@ -352,10 +352,9 @@ __Examples__
     });
     
     var ClucSsh = Cluc.transports.ssh;
-    var ssh = new ClucSsh();
-    ssh.getConnReady(server, function(err, conn){
+    clucLine.getConnReady(server, function(err, conn){
       if(err) return done(err);
-      clucLine.run( ssh );
+      clucLine.run( new ClucSsh(conn) );
     });
 ```
 

@@ -81,7 +81,7 @@ var ClucSSh = (function(){
       then(e);
     }
   };
-  ClucSSh.prototype.getConnReady = function(server,then){
+  ClucSSh.getConnReady = function(server,then){
     try{
       ssh.getConnReady( server, then);
     }catch(e){
