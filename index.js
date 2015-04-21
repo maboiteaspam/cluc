@@ -81,9 +81,14 @@ var ClucSsh = (function(){
       then(e);
     }
   };
-  ClucSsh.getConnReady = function(server,then){
+  ClucSsh.prototype.run = function(clucLine,server,then){
+    var that = this;
     try{
-      ssh.getConnReady( server, then);
+      ssh.getConnReady( server, function(err, conn){
+        if(err) throw err;
+        that.conn = conn;
+        clucLine.run(then);
+      });
     }catch(e){
       then(e);
     }
@@ -114,6 +119,9 @@ var ClucChildProcess = (function(){
     }catch(e){
       then(e);
     }
+  };
+  ClucSsh.prototype.run = function(clucLine,then){
+    clucLine.run(then);
   };
   return ClucChildProcess;
 })();

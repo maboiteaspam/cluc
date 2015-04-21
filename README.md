@@ -7,7 +7,6 @@ Command line under control, a library to ease usage of command lines.
 with child_process
 ```js
     var Cluc = require('luc');
-    var ClucProcess = Cluc.transports.process;
 
     var clucLine = (new Cluc())
       .exec('ls -alh' , function(err,stdout,stderr){
@@ -26,7 +25,10 @@ with child_process
         });
       });
 
-      clucLine.run(new ClucProcess());
+    var ClucProcess = Cluc.transports.process;
+    (new ClucProcess()).run(clucLine, function(err){
+      if(err) return done(err);
+    });
 ```
 
 
@@ -34,7 +36,6 @@ with child_process
 with ssh
 ```js
     var Cluc = require('luc');
-    var ClucSsh = Cluc.transports.ssh;
 
     var clucLine = (new Cluc())
       .exec('ls -alh' , function(err,stdout,stderr){
@@ -54,10 +55,8 @@ with ssh
       });
     
     var ClucSsh = Cluc.transports.ssh;
-    var ssh = new ClucSsh();
-    ClucSsh.getConnReady(server, function(err, conn){
+    (new ClucSsh()).run(clucLine, server, function(err){
       if(err) return done(err);
-      clucLine.run( new ClucSsh(conn) );
     });
 ```
 
@@ -70,12 +69,13 @@ with ssh
 
 * [`Cluc.transports.ssh`]()
     * [`ClucSsh`](#ClucSsh)
-        * [`ClucSsh.getConnReady`](#getConnReady)
+        * [`ClucSsh.exec`](#exec)
         * [`ClucSsh.stream`](#stream)
         * [`ClucSsh.run`](#run)
 
 * [`Cluc.transports.process`]()
     * [`ClucChildProcess`](#ClucSsh)
+        * [`ClucChildProcess.exec`](#exec)
         * [`ClucChildProcess.stream`](#stream)
         * [`ClucChildProcess.run`](#run)
     
@@ -216,9 +216,10 @@ __Examples__
       log.verbose(stdout)
       log.info('done')
     });
-    
-    var ClucProcess = Cluc.transports.process;
-    clucLine.run(new ClucProcess());
+
+    (new ClucProcess()).run(clucLine, function(err){
+      if(err) return done(err);
+    });
 ```
 
 ---------------------------------------
@@ -242,17 +243,15 @@ __Examples__
 ```
 
 
-<a name="ClucSsh.getConnReady" />
-### ClucSsh.getConnReady(server, fn)
+<a name="ClucSsh.run" />
+### ClucSsh.run(clucLine, server, done)
 
-__Static__
-
-Get ann shh connection ready to use.
+Run a clucLine over ssh.
 
 __Arguments__
 
 * `server` - Object like ssh2 credentials.
-* `fn` - A function called once connection is ready or error.
+* `done` - A function called once cluc line is executed.
     * `err` an Error.
     * `conn` an SSHClient connection.
 
@@ -267,9 +266,9 @@ __Examples__
     var clucLine = new Cluc();
     
     var ClucSsh = Cluc.transports.ssh;
-    ClucSsh.getConnReady(server, function(err, conn){
+    var ssh = new ClucSsh(conn)
+    ssh.run(clucLine, server, function(err){
       if(err) return done(err);
-      clucLine.run( new ClucSsh(conn) );
     });
 ```
 
@@ -313,9 +312,9 @@ __Examples__
     });
     
     var ClucSsh = Cluc.transports.ssh;
-    ClucSsh.getConnReady(server, function(err, conn){
+    var ssh = new ClucSsh(conn)
+    ssh.run(clucLine, server, function(err){
       if(err) return done(err);
-      clucLine.run( new ClucSsh(conn) );
     });
 ```
 
@@ -352,9 +351,9 @@ __Examples__
     });
     
     var ClucSsh = Cluc.transports.ssh;
-    clucLine.getConnReady(server, function(err, conn){
+    var ssh = new ClucSsh(conn)
+    ssh.run(clucLine, server, function(err){
       if(err) return done(err);
-      clucLine.run( new ClucSsh(conn) );
     });
 ```
 
@@ -414,9 +413,10 @@ __Examples__
           log.info('done')
         });
     });
-    
-    var ClucChildProcess = Cluc.transports.process;
-    clucLine.run( new ClucChildProcess() );
+
+    (new ClucProcess()).run(clucLine, function(err){
+      if(err) return done(err);
+    });
 ```
 
 
@@ -451,8 +451,9 @@ __Examples__
         log.info('done')
     });
     
-    var ClucChildProcess = Cluc.transports.process;
-    clucLine.run( new ClucChildProcess() );
+    (new ClucProcess()).run(clucLine, function(err){
+      if(err) return done(err);
+    });
 ```
 
 ---------------------------------------
@@ -505,8 +506,9 @@ __Examples__
         this.must(/some/, 'some is not shown');
     });
     
-    var ClucChildProcess = Cluc.transports.process;
-    clucLine.run( new ClucChildProcess() );
+    (new ClucProcess()).run(clucLine, function(err){
+      if(err) return done(err);
+    });
 ```
 
 
@@ -535,8 +537,9 @@ __Examples__
         this.must(/some/, 'some is not shown');
     });
     
-    var ClucChildProcess = Cluc.transports.process;
-    clucLine.run( new ClucChildProcess() );
+    (new ClucProcess()).run(clucLine, function(err){
+      if(err) return done(err);
+    });
 ```
 
 
@@ -565,8 +568,9 @@ __Examples__
         this.confirm(/some/, 'some is shown');
     });
     
-    var ClucChildProcess = Cluc.transports.process;
-    clucLine.run( new ClucChildProcess() );
+    (new ClucProcess()).run(clucLine, function(err){
+      if(err) return done(err);
+    });
 ```
 
 
@@ -595,8 +599,9 @@ __Examples__
         this.must(/some/, 'some is not shown');
     });
     
-    var ClucChildProcess = Cluc.transports.process;
-    clucLine.run( new ClucChildProcess() );
+    (new ClucProcess()).run(clucLine, function(err){
+      if(err) return done(err);
+    });
 ```
 
 
@@ -625,8 +630,9 @@ __Examples__
         this.must(/some/, 'some is not shown');
     });
     
-    var ClucChildProcess = Cluc.transports.process;
-    clucLine.run( new ClucChildProcess() );
+    (new ClucProcess()).run(clucLine, function(err){
+      if(err) return done(err);
+    });
 ```
 
 ---------------------------------------

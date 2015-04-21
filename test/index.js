@@ -49,7 +49,6 @@ describe('cluc', function(){
 
     var Cluc = require('../index.js');
 
-    var ClucProcess = Cluc.transports.process;
 
     var clucLine = (new Cluc())
       .exec('ls -alh' , function(err,stdout,stderr){
@@ -68,15 +67,16 @@ describe('cluc', function(){
         });
       });
 
-    clucLine.run(new ClucProcess())
+    var ClucProcess = Cluc.transports.process;
+    (new ClucProcess()).run(clucLine, function(err){
+      if(err) return done(err);
+    });
   });
   it('can work on ssh', function(done){
 
     var Cluc = require('../index.js');
     var server = servers.vagrant.ssh;
 
-    var ClucSsh = Cluc.transports.ssh;
-
     var clucLine = (new Cluc())
       .exec('ls -alh' , function(err,stdout,stderr){
         if(err) log.error(err);
@@ -94,9 +94,9 @@ describe('cluc', function(){
         });
       });
 
-    ClucSsh.getConnReady(server, function(err, conn){
+    var ClucSsh = Cluc.transports.ssh;
+    (new ClucSsh()).run(clucLine, server, function(err){
       if(err) return done(err);
-      clucLine.run( new ClucSsh(conn) );
     });
   });
 });
