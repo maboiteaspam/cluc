@@ -1,0 +1,11 @@
+{
+  "name": "cluc",
+  "version": "1.0.0",
+  "description": "command line under control",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "maboiteaspam",
+  "license": "WTF"
+}
