@@ -10,7 +10,9 @@
   "license": "WTF",
   "dependencies": {
     "npmlog": "^1.2.0",
-    "ssh2-utils": "maboiteaspam/ssh2-utils"
+    "ssh2-utils": "maboiteaspam/ssh2-utils",
+    "underscore.string": "^3.0.3",
+    "unparse-args": "^1.0.1"
   },
   "devDependencies": {
     "node-vagrant-bin": "^1.0.2",

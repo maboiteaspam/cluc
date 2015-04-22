@@ -51,18 +51,19 @@ describe('cluc', function(){
 
 
     var clucLine = (new Cluc())
-      .exec('ls -alh' , function(err,stdout,stderr){
+      .exec('echo "some content, i can test that both windows / linux @!"' , function(err,stdout,stderr){
         if(err) log.error(err);
         if(stderr) log.error(stderr);
-        this.confirm(/vagrant/, 'Username should display on unix.');
-        this.warn(/root/, 'Some files does not belong vagrant users.');
+        this.confirm(/i can test that both windows/, 'it displays the message ');
+        this.warn(/windows/, 'Windows so dirty...');
+        console.log(' ---------------------- end of exec');
       })
-      .stream('ls -alh' , function(err,stdout,stderr){
+      .stream('node -v' , function(err,stdout,stderr){
         if(err) log.error(err);
-        this.confirm(/vagrant/, 'Username should display on unix.');
-        this.warn(/root/, 'Some files does not belong vagrant users.');
+        this.confirm(/v[0-9]+/, 'it displays the message ');
+        this.warn(/12\.0/, 'It must should not be v0.12.0.');
         stdout.on('close',function(){
-          console.log('stream')
+          console.log(' ---------------------- end of stream');
           done();
         });
       });
@@ -83,13 +84,14 @@ describe('cluc', function(){
         if(stderr) log.error(stderr);
         this.confirm(/vagrant/, 'Username should display on unix.');
         this.warn(/root/, 'Some files does not belong vagrant users.');
+        console.log(' ---------------------- end of exec');
       })
       .stream('ls -alh' , function(err,stdout,stderr){
         if(err) log.error(err);
         this.confirm(/vagrant/, 'Username should display on unix.');
         this.warn(/root/, 'Some files does not belong vagrant users.');
         stdout.on('close',function(){
-          console.log('stream')
+          console.log(' ---------------------- end of stream');
           done();
         });
       });

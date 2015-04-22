@@ -3,6 +3,7 @@
 
 var log = require('npmlog');
 var util = require('util');
+var _s = require('underscore.string');
 
 
 var Cluc = (function(){
@@ -20,6 +21,8 @@ var Cluc = (function(){
     return this;
   };
   Cluc.prototype.run = function(transport, then){
+    var that = this;
+
     if(!this.isRunning && this.cmds.length){
 
       this.isRunning = true;
@@ -29,7 +32,7 @@ var Cluc = (function(){
         helper = new (this.OutputHelper)();
       }
 
-      var cmds = this.cmds;
+      var cmds = that.cmds;
       var _next = function(){
         var cmd = cmds.shift();
         if(cmd){
@@ -46,10 +49,15 @@ var Cluc = (function(){
               _next();
             });
           }
+        }else if(!cmds.length){
+          that.isRunning = false;
+          then();
         }
       };
       _next();
       return true;
+    }else if(!this.cmds.length){
+      then();
     }
     return false;
   };
@@ -89,7 +97,7 @@ var ClucSsh = (function(){
       ssh.getConnReady( server, function(err, conn){
         if(err) throw err;
         that.conn = conn;
-        clucLine.run(this, then);
+        clucLine.run(that, then);
       });
     }catch(e){
       then(e);
@@ -105,9 +113,38 @@ var ClucChildProcess = (function(){
   };
   ClucChildProcess.prototype.stream = function(cmdStr,then){
     try{
-      cmdStr = cmdStr.split(' ');
-      var prgm = cmdStr.shift();
-      var c = child_process.spawn(prgm, cmdStr);
+      // - command line parser. Could not find how to re use node parser.
+      cmdStr = cmdStr.match(/^([^ ]+)(.+)/);
+      var prgm = cmdStr[1];
+      cmdStr = _s.trim(cmdStr[2]);
+      var args = [];
+      var isquote=false;
+      cmdStr.split(" ").forEach(function (part){
+        if(part.match(/^['"]/)){
+          args.push(part);
+          isquote = true;
+        }else if(part.match(/['"]$/) && !part.match(/\\['"]$/) ){
+          args[args.length-1] += ''+part+' ';
+          isquote = false;
+        }else{
+
+          if(isquote){
+            args[args.length-1] += ''+part+' ';
+          } else{
+            args.push(part);
+          }
+        }
+      });
+      args.forEach(function(arg,i){
+        var m = arg.match(/^\s*["'](.+)["']\s*$/);
+        if( m ){
+          args[i] = m[1]
+        }
+      });
+      args[args.length-1] = _s.trim(args[args.length-1]);
+      // - command line parser. Could not find how to re use node parser.
+
+      var c = child_process.spawn(prgm, args);
       then(null, c.stderr,  c.stdout, c.stdin, c);
     }catch(e){
       then(e);
@@ -141,12 +178,33 @@ var ClucOutputHelper = (function(){
     this.error = error || null;
     this.stdout = stdout || null;
     this.stderr = stderr || null;
+
+    //- logs
+    if(this.stdout){
+      if( this.stdout.indexOf ){
+        log.silly(this.stdout)
+      }else{
+        this.stdout.on('data', function(d){
+          log.silly(''+d);
+        });
+      }
+    }
+    if(this.stderr){
+      if( this.stderr.indexOf ){
+        log.silly(this.stderr)
+      }else{
+        this.stderr.on('data', function(d){
+          log.silly(''+d);
+        });
+      }
+    }
+    //- logs
   };
 
   ClucOutputHelper.testStreamOrString = function(streamOrStr, message, then){
-    if( streamOrStr.indexOf ){
+    if( streamOrStr && streamOrStr.indexOf ){
       then( (!!streamOrStr.match(message)) )
-    } else {
+    } else if(streamOrStr) {
       var found = false;
       streamOrStr.on('data', function(d){
         if(!found  ){
@@ -172,8 +230,8 @@ var ClucOutputHelper = (function(){
   ClucOutputHelper.prototype.confirm = function(search, confirm ){
     [this.stdout,this.stderr].forEach(function(s){
       ClucOutputHelper.testStreamOrString(s, search, function(found){
-        if(!found){
-          log.error(confirm);
+        if(found){
+          log.info(confirm);
         }
       });
     });
@@ -183,6 +241,7 @@ var ClucOutputHelper = (function(){
       ClucOutputHelper.testStreamOrString(s, search, function(found){
         if(found){
           log.error(warn);
+          throw warn;
         }
       });
     });
@@ -190,8 +249,8 @@ var ClucOutputHelper = (function(){
   ClucOutputHelper.prototype.warn = function(search, warn ){
     [this.stdout,this.stderr].forEach(function(s){
       ClucOutputHelper.testStreamOrString(s, search, function(found){
-        if(!found){
-          log.error(warn);
+        if(found){
+          log.warn(warn);
         }
       });
     });
