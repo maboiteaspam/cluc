@@ -10,19 +10,13 @@ with child_process
 
     var clucLine = (new Cluc())
       .exec('ls -alh' , function(err,stdout,stderr){
-        if(err) log.error(err);
-        if(stderr) log.error(stderr);
         this.confirm(/vagrant/, 'Username should display on unix.');
         this.warn(/root/, 'Some files does not belong vagrant users.');
       })
       .stream('ls -alh' , function(err,stdout,stderr){
-        if(err) log.error(err);
         this.confirm(/vagrant/, 'Username should display on unix.');
         this.warn(/root/, 'Some files does not belong vagrant users.');
-        stdout.on('close',function(){
-          console.log('stream')
-          done();
-        });
+        stdout.on('close',function(){ done(); });
       });
 
     var ClucProcess = Cluc.transports.process;
@@ -39,19 +33,13 @@ with ssh
 
     var clucLine = (new Cluc(Cluc.output.ssh))
       .exec('ls -alh' , function(err,stdout,stderr){
-        if(err) log.error(err);
-        if(stderr) log.error(stderr);
         this.confirm(/vagrant/, 'Username should display on unix.');
         this.warn(/root/, 'Some files does not belong vagrant users.');
       })
       .stream('ls -alh' , function(err,stdout,stderr){
-        if(err) log.error(err);
         this.confirm(/vagrant/, 'Username should display on unix.');
         this.warn(/root/, 'Some files does not belong vagrant users.');
-        stdout.on('close',function(){
-          console.log('stream')
-          done();
-        });
+        stdout.on('close',function(){ done(); });
       });
     
     var ClucSsh = Cluc.transports.ssh;
