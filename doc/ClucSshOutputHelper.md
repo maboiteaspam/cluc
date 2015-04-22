@@ -31,8 +31,8 @@ __Examples__
 ---------------------------------------
 
 
-<a name="ClucOutputHelper.init" />
-### ClucOutputHelper.init(error, stdout, stderr)
+<a name="ClucSshOutputHelper.init" />
+### ClucSshOutputHelper.init(error, stdout, stderr)
 
 Initialize members of this outputHelper.
 
@@ -63,8 +63,8 @@ __Examples__
 ---------------------------------------
 
 
-<a name="ClucOutputHelper.must" />
-### ClucOutputHelper.must(search, error)
+<a name="ClucSshOutputHelper.must" />
+### ClucSshOutputHelper.must(search, error)
 
 Display error message, and throw an exception,
 if search does not match stdout or stderr.
@@ -92,8 +92,8 @@ __Examples__
 ---------------------------------------
 
 
-<a name="ClucOutputHelper.mustnot" />
-### ClucOutputHelper.mustnot(search, error)
+<a name="ClucSshOutputHelper.mustnot" />
+### ClucSshOutputHelper.mustnot(search, error)
 
 Display error message, and throw an exception,
 if search match stdout or stderr.
@@ -121,8 +121,8 @@ __Examples__
 ---------------------------------------
 
 
-<a name="ClucOutputHelper.confirm" />
-### ClucOutputHelper.confirm(search, confirmation)
+<a name="ClucSshOutputHelper.confirm" />
+### ClucSshOutputHelper.confirm(search, confirmation)
 
 Display confirmation message,
 if search match stdout or stderr.
@@ -150,8 +150,8 @@ __Examples__
 ---------------------------------------
 
 
-<a name="ClucOutputHelper.warn" />
-### ClucOutputHelper.info(search, warn)
+<a name="ClucSshOutputHelper.warn" />
+### ClucSshOutputHelper.info(search, warn)
 
 Display info message,
 if search does not match stdout or stderr.
@@ -179,8 +179,8 @@ __Examples__
 ---------------------------------------
 
 
-<a name="ClucOutputHelper.warn" />
-### ClucOutputHelper.warn(search, warn)
+<a name="ClucSshOutputHelper.warn" />
+### ClucSshOutputHelper.warn(search, warn)
 
 Display warn message,
 if search does not match stdout or stderr.

@@ -87,7 +87,6 @@ with ssh
         * [`ClucSshOutputHelper.must`](doc/ClucSshOutputHelper.md#ClucSshOutputHelper.must)
         * [`ClucSshOutputHelper.mustnot`](doc/ClucSshOutputHelper.md#ClucSshOutputHelper.mustnot)
         * [`ClucSshOutputHelper.warn`](doc/ClucSshOutputHelper.md#ClucSshOutputHelper.warn)
-        * [`ClucSshOutputHelper.clean`](doc/ClucSshOutputHelper.md#ClucSshOutputHelper.clean)
 
 
 
