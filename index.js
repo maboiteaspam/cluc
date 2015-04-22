@@ -3,6 +3,7 @@
 
 var log = require('npmlog');
 var util = require('util');
+var pkg = require('./package.json');
 var _s = require('underscore.string');
 
 
@@ -74,6 +75,7 @@ var ClucSsh = (function(){
   ClucSsh.prototype.stream = function(cmdStr,then){
     var conn = this.conn;
     try{
+      log.info(pkg.name, cmdStr);
       ssh.run( conn, cmdStr, function(err, stream, stderr){
         then(err, stream, stderr, stream, conn);
       });
@@ -84,6 +86,7 @@ var ClucSsh = (function(){
   ClucSsh.prototype.exec = function(cmdStr,then){
     var conn = this.conn;
     try{
+      log.info(pkg.name, cmdStr);
       ssh.exec( conn, cmdStr, function(err, stdout, stderr){
         then(err, stdout, stderr, conn);
       });
@@ -117,6 +120,7 @@ var ClucChildProcess = (function(){
   };
   ClucChildProcess.prototype.stream = function(cmdStr,then){
     try{
+      log.info(pkg.name, cmdStr);
       // - command line parser. Could not find how to re use node parser.
       cmdStr = cmdStr.match(/^([^ ]+)(.+)/);
       var prgm = cmdStr[1];
@@ -156,6 +160,7 @@ var ClucChildProcess = (function(){
   };
   ClucChildProcess.prototype.exec = function(cmdStr,then){
     try{
+      log.info(pkg.name, cmdStr);
       var c = child_process.exec(cmdStr, function(error, stdout, stderr){
         then(error, stdout, stderr, c);
       })
