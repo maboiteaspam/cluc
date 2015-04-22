@@ -221,8 +221,8 @@ var ClucOutputHelper = (function(){
         d=d+'';
         if(!found  ){
           found = !!d.match(message);
+          if(found)msg+=(d.match(message)[1] || d);
         }
-        if(found)msg+=(d.match(message)[1] || d);
       });
       streamOrStr.on('close', function(){
         then( found, msg )
