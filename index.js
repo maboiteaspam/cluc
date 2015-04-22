@@ -39,9 +39,10 @@ var Cluc = (function(){
         if(cmd){
           if(cmd.t=='stream'){
             transport.stream(cmd.cmd, function(error, stderr, stdout){
-              stdout.on('close', _next);
+              if(stdout) stdout.on('close', _next);
               helper.init(error, stdout, stderr);
               cmd.fn.call(helper,error, stderr, stdout);
+              if(!stdout) _next();
             });
           }else{
             transport.exec(cmd.cmd, function(error, stdout, stderr){
