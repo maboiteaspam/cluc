@@ -3,6 +3,7 @@
 * [`Cluc.transports.ssh`]()
     * [`ClucSshOutputHelper`](#ClucSsh)
         * [`ClucSshOutputHelper.exec`](#exec)
+        * [`ClucSshOutputHelper.init`](#init)
         * [`ClucSshOutputHelper.stream`](#stream)
         * [`ClucSshOutputHelper.run`](#run)
 
@@ -32,7 +33,7 @@ __Examples__
 
 
 <a name="ClucSshOutputHelper.init" />
-### ClucSshOutputHelper.init(error, stdout, stderr)
+### ClucSshOutputHelper.init(error, stdout, stderr, stdin)
 
 Initialize members of this outputHelper.
 
@@ -41,6 +42,7 @@ __Arguments__
 * `error` - A text message.
 * `stdout` - A String or Stream of stdout.
 * `stderr` - A String or Stream of stderr.
+* `stdin` - A Stream of stdin.
 
 __Returns__
 
@@ -53,7 +55,7 @@ __Examples__
     
     var helper = new Cluc.output.ssh();
     
-    // helper.init(server, error, new Stream(), new Stream());
+    // helper.init(server, error, new Stream(), new Stream(), new Stream());
     
     (new Cluc(helper ) ).exec('ls -alh', function(err, stdout, stderr, conn){
         this.must(/some/, 'some is not shown');

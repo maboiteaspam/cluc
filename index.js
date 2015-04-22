@@ -184,10 +184,11 @@ var ClucOutputHelper = (function(){
   var ClucOutputHelper = function(){
     this.init();
   };
-  ClucOutputHelper.prototype.init = function(error, stdout, stderr){
+  ClucOutputHelper.prototype.init = function(error, stdout, stderr, stdin){
     this.error = error || null;
     this.stdout = stdout || null;
     this.stderr = stderr || null;
+    this.stdin = stdin || null;
 
     //- logs
     if(this.stdout){
@@ -266,6 +267,12 @@ var ClucOutputHelper = (function(){
           log.warn(pkg.name, warn || msg || search);
         }
       });
+    });
+  };
+  ClucOutputHelper.prototype.answer = function(q, a ){
+    this.stdout.on('data', function(d){
+      d=''+d;
+      if(d.match(q) ) this.stdin.write(a);
     });
   };
 

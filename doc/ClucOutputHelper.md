@@ -2,6 +2,7 @@
 
 * [`Cluc.output.process`]()
     * [`ClucOutputHelper`](#ClucSsh)
+        * [`ClucOutputHelper.init`](#init)
         * [`ClucOutputHelper.exec`](#exec)
         * [`ClucOutputHelper.stream`](#stream)
         * [`ClucOutputHelper.run`](#run)
