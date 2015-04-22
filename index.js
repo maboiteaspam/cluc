@@ -23,6 +23,11 @@ var Cluc = (function(){
     else this.cmds.push({cmd:cmd, fn:fn, t:'string'});
     return this;
   };
+  Cluc.prototype.wait = function(fn){
+    if(this.isRunning) this.cmds.unshift({fn:fn, t:'wait'});
+    else this.cmds.push({fn:fn, t:'wait'});
+    return this;
+  };
   Cluc.prototype.run = function(transport, then){
     var that = this;
 
@@ -46,12 +51,14 @@ var Cluc = (function(){
               if(cmd.fn) cmd.fn.call(helper,error, stdout, stderr);
               if(!stdout) _next();
             });
-          }else{
+          }else if(cmd.t=='string'){
             transport.exec(cmd.cmd, function(error, stdout, stderr){
               helper.init(error, stdout, stderr);
               if(cmd.fn) cmd.fn.call(helper, error, stdout, stderr);
               _next();
             });
+          }else if(cmd.t=='wait'){
+            cmd.fn(_next)
           }
         }else if(!cmds.length){
           that.isRunning = false;
