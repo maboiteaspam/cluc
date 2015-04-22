@@ -61,7 +61,8 @@ describe('cluc', function(){
       .stream('node -v' , function(err,stdout,stderr){
         if(err) log.error(err);
         this.confirm(/v[0-9]+/, 'it displays the message ');
-        this.warn(/12\.0/, 'It must should not be v0.12.0.');
+        this.confirm(/(v[0-9-.]+)/);
+        this.warn(/12\.0/, 'It should not be v0.12.0.');
         stdout.on('close',function(){
           console.log(' ---------------------- end of stream');
           done();

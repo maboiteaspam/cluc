@@ -216,22 +216,25 @@ var ClucOutputHelper = (function(){
       then( (!!streamOrStr.match(message)) )
     } else if(streamOrStr) {
       var found = false;
+      var msg = '';
       streamOrStr.on('data', function(d){
+        d=d+'';
         if(!found  ){
-          found = !!(''+d).match(message);
+          found = !!d.match(message);
         }
+        if(found)msg+=(d.match(message)[1] || d);
       });
       streamOrStr.on('close', function(){
-        then( found )
+        then( found, msg )
       })
     }
   };
 
   ClucOutputHelper.prototype.must = function(search, error ){
     [this.stdout,this.stderr].forEach(function(s){
-      ClucOutputHelper.testStreamOrString(s, search, function(found){
+      ClucOutputHelper.testStreamOrString(s, search, function(found, msg){
         if(!found){
-          log.error(pkg.name, error || search);
+          log.error(pkg.name, error || msg || search);
           throw error;
         }
       });
@@ -239,18 +242,18 @@ var ClucOutputHelper = (function(){
   };
   ClucOutputHelper.prototype.confirm = function(search, confirm ){
     [this.stdout,this.stderr].forEach(function(s){
-      ClucOutputHelper.testStreamOrString(s, search, function(found){
+      ClucOutputHelper.testStreamOrString(s, search, function(found, msg){
         if(found){
-          log.info(pkg.name, confirm || search);
+          log.info(pkg.name, confirm || msg || search);
         }
       });
     });
   };
   ClucOutputHelper.prototype.mustnot = function(search, warn ){
     [this.stdout,this.stderr].forEach(function(s){
-      ClucOutputHelper.testStreamOrString(s, search, function(found){
+      ClucOutputHelper.testStreamOrString(s, search, function(found, msg){
         if(found){
-          log.error(pkg.name, warn || search);
+          log.error(pkg.name, warn || msg || search);
           throw warn;
         }
       });
@@ -258,9 +261,9 @@ var ClucOutputHelper = (function(){
   };
   ClucOutputHelper.prototype.warn = function(search, warn ){
     [this.stdout,this.stderr].forEach(function(s){
-      ClucOutputHelper.testStreamOrString(s, search, function(found){
+      ClucOutputHelper.testStreamOrString(s, search, function(found, msg){
         if(found){
-          log.warn(pkg.name, warn || search);
+          log.warn(pkg.name, warn || msg || search);
         }
       });
     });
