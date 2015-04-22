@@ -41,13 +41,13 @@ var Cluc = (function(){
             transport.stream(cmd.cmd, function(error, stderr, stdout){
               if(stdout) stdout.on('close', _next);
               helper.init(error, stdout, stderr);
-              cmd.fn.call(helper,error, stderr, stdout);
+              if(cmd.fn) cmd.fn.call(helper,error, stderr, stdout);
               if(!stdout) _next();
             });
           }else{
             transport.exec(cmd.cmd, function(error, stdout, stderr){
               helper.init(error, stdout, stderr);
-              cmd.fn.call(helper,error, stdout, stderr);
+              if(cmd.fn) cmd.fn.call(helper,error, stderr, stdout);
               _next();
             });
           }
