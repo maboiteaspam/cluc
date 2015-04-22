@@ -230,7 +230,7 @@ var ClucOutputHelper = (function(){
     [this.stdout,this.stderr].forEach(function(s){
       ClucOutputHelper.testStreamOrString(s, search, function(found){
         if(!found){
-          log.error(error || search);
+          log.error(pkg.name, error || search);
           throw error;
         }
       });
@@ -240,7 +240,7 @@ var ClucOutputHelper = (function(){
     [this.stdout,this.stderr].forEach(function(s){
       ClucOutputHelper.testStreamOrString(s, search, function(found){
         if(found){
-          log.info(confirm || search);
+          log.info(pkg.name, confirm || search);
         }
       });
     });
@@ -249,7 +249,7 @@ var ClucOutputHelper = (function(){
     [this.stdout,this.stderr].forEach(function(s){
       ClucOutputHelper.testStreamOrString(s, search, function(found){
         if(found){
-          log.error(warn || search);
+          log.error(pkg.name, warn || search);
           throw warn;
         }
       });
@@ -259,7 +259,7 @@ var ClucOutputHelper = (function(){
     [this.stdout,this.stderr].forEach(function(s){
       ClucOutputHelper.testStreamOrString(s, search, function(found){
         if(found){
-          log.warn(warn || search);
+          log.warn(pkg.name, warn || search);
         }
       });
     });
