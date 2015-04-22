@@ -25,6 +25,8 @@ __Examples__
     clucLine.run(new ClucChildProcess())
 ```
 
+---------------------------------------
+
 
 <a name="ClucChildProcess.stream" />
 ### ClucChildProcess.stream(cmd, fn)
@@ -68,6 +70,8 @@ __Examples__
     });
 ```
 
+---------------------------------------
+
 
 <a name="ClucChildProcess.exec" />
 ### ClucChildProcess.exec(cmd, fn)
@@ -104,3 +108,5 @@ __Examples__
       if(err) return done(err);
     });
 ```
+
+---------------------------------------

@@ -8,7 +8,6 @@
 
 ---------------------------------------
 
-
 <a name="ClucOutputHelper" />
 ### new ClucOutputHelper()
 
@@ -26,6 +25,8 @@ __Examples__
         this.must(/some/, 'some is not shown');
     });
 ```
+
+---------------------------------------
 
 
 <a name="ClucOutputHelper.init" />
@@ -53,6 +54,8 @@ __Examples__
     });
 ```
 
+---------------------------------------
+
 
 <a name="ClucOutputHelper.must" />
 ### ClucOutputHelper.must(search, error)
@@ -77,6 +80,8 @@ __Examples__
         this.must(/some/, 'some is not shown');
     });
 ```
+
+---------------------------------------
 
 
 <a name="ClucOutputHelper.mustnot" />
@@ -103,6 +108,8 @@ __Examples__
     });
 ```
 
+---------------------------------------
+
 
 <a name="ClucOutputHelper.confirm" />
 ### ClucOutputHelper.confirm(search, confirmation)
@@ -127,6 +134,8 @@ __Examples__
         this.confirm(/some/, 'some is shown');
     });
 ```
+
+---------------------------------------
 
 
 <a name="ClucOutputHelper.warn" />
@@ -153,6 +162,8 @@ __Examples__
     });
 ```
 
+---------------------------------------
+
 
 <a name="ClucOutputHelper.warn" />
 ### ClucOutputHelper.warn(search, warn)
@@ -177,3 +188,5 @@ __Examples__
         this.must(/some/, 'some is not shown');
     });
 ```
+
+---------------------------------------

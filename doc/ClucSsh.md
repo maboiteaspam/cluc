@@ -26,6 +26,8 @@ __Examples__
     var ssh = new ClucSsh();
 ```
 
+---------------------------------------
+
 
 <a name="ClucSsh.run" />
 ### ClucSsh.run(clucLine, server, done)
@@ -55,6 +57,8 @@ __Examples__
       if(err) return done(err);
     });
 ```
+
+---------------------------------------
 
 
 <a name="ClucSsh.stream" />
@@ -102,6 +106,8 @@ __Examples__
     });
 ```
 
+---------------------------------------
+
 
 <a name="ClucSsh.exec" />
 ### ClucSsh.exec(cmd, fn)
@@ -140,3 +146,5 @@ __Examples__
       if(err) return done(err);
     });
 ```
+
+---------------------------------------

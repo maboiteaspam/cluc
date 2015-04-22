@@ -25,6 +25,8 @@ __Examples__
     var clucLine = new Cluc(Cluc.output.process);
 ```
 
+---------------------------------------
+
 
 <a name="Cluc.stream" />
 ### Cluc.stream(cmd, fn)
@@ -64,6 +66,8 @@ __Examples__
     });
 ```
 
+---------------------------------------
+
 
 <a name="Cluc.exec" />
 ### Cluc.exec(cmd, fn)
@@ -96,6 +100,8 @@ __Examples__
         log.info('done')
     });
 ```
+
+---------------------------------------
 
 
 <a name="Cluc.run" />
@@ -143,3 +149,5 @@ __Examples__
       if(err) return done(err);
     });
 ```
+
+---------------------------------------
