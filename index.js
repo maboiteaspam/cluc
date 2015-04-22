@@ -2,9 +2,14 @@
 // command line under control
 
 var log = require('npmlog');
+log.addLevel('watch', 2001, { }, '    ');
+log.addLevel('success', 2002, { fg: 'white', bg: 'green' }, 'succ');
+log.addLevel('cmd', 2003, { fg: 'white', bg: 'grey' }, '####');
+
 var util = require('util');
 var pkg = require('./package.json');
 var _s = require('underscore.string');
+var symbols = require('symbolsjs');
 
 
 var Cluc = (function(){
@@ -18,6 +23,11 @@ var Cluc = (function(){
     else this.cmds.push({cmd:cmd, fn:fn, t:'stream'});
     return this;
   };
+  Cluc.prototype.tail = function(cmd,fn){
+    if(this.isRunning) this.cmds.unshift({cmd:cmd, fn:fn, t:'tail'});
+    else this.cmds.push({cmd:cmd, fn:fn, t:'tail'});
+    return this;
+  };
   Cluc.prototype.exec = function(cmd,fn){
     if(this.isRunning) this.cmds.unshift({cmd:cmd, fn:fn, t:'string'});
     else this.cmds.push({cmd:cmd, fn:fn, t:'string'});
@@ -26,6 +36,14 @@ var Cluc = (function(){
   Cluc.prototype.wait = function(fn){
     if(this.isRunning) this.cmds.unshift({fn:fn, t:'wait'});
     else this.cmds.push({fn:fn, t:'wait'});
+    return this;
+  };
+  Cluc.prototype.concat = function(other){
+    if(other instanceof Cluc ){
+      this.cmds = this.cmds.concat(other.cmds);
+    }else if( other instanceof Array ){
+      this.cmds = this.cmds.concat(other);
+    }
     return this;
   };
   Cluc.prototype.run = function(transport, then){
@@ -44,12 +62,12 @@ var Cluc = (function(){
       var _next = function(){
         var cmd = cmds.shift();
         if(cmd){
-          if(cmd.t=='stream'){
+          if(cmd.t.match(/(stream|tail)/)){
             transport.stream(cmd.cmd, function(error, stderr, stdout,stdin){
-              if(stdout) stdout.on('close', _next);
+              if(stdout && cmd.t=='stream') stdout.on('close', _next);
               helper.init(cmd, error, stdout, stderr,stdin);
               if(cmd.fn) cmd.fn.call(helper,error, stdout, stderr);
-              if(!stdout) _next();
+              if(!stdout || cmd.t=='tail') _next();
             });
           }else if(cmd.t=='string'){
             transport.exec(cmd.cmd, function(error, stdout, stderr){
@@ -85,8 +103,10 @@ var ClucSsh = (function(){
   ClucSsh.prototype.stream = function(cmdStr,then){
     var conn = this.conn;
     try{
-      log.info(pkg.name, cmdStr);
+      log.cmd(pkg.name, cmdStr);
       ssh.run( conn, cmdStr, function(err, stream, stderr){
+        stream.setMaxListeners(50);
+        stderr.setMaxListeners(50);
         then(err, stream, stderr, stream, conn);
       });
     }catch(e){
@@ -96,7 +116,7 @@ var ClucSsh = (function(){
   ClucSsh.prototype.exec = function(cmdStr,then){
     var conn = this.conn;
     try{
-      log.info(pkg.name, cmdStr);
+      log.cmd(pkg.name, cmdStr);
       ssh.exec( conn, cmdStr, function(err, stdout, stderr){
         then(err, stdout, stderr, conn);
       });
@@ -111,9 +131,12 @@ var ClucSsh = (function(){
         if(err) throw err;
         that.conn = conn;
         clucLine.run(that, function(){
-          conn.end();
-          that.conn = null;
-          if(then) then(err);
+          process.nextTick(function(){
+
+            conn.end();
+            that.conn = null;
+            if(then) then(err);
+          })
         });
       });
     }catch(e){
@@ -163,6 +186,8 @@ var ClucChildProcess = (function(){
       // - command line parser. Could not find how to re use node parser.
 
       var c = child_process.spawn(prgm, args);
+      c.stdout.setMaxListeners(50);
+      c.stderr.setMaxListeners(50);
       then(null, c.stderr,  c.stdout, c.stdin, c);
     }catch(e){
       then(e);
@@ -283,7 +308,14 @@ var ClucOutputHelper = (function(){
   };
   ClucOutputHelper.prototype.watch = function(search, confirm ){
     this.MatchStreamThen(search, function(found, msg){
-      if(found) log.info(pkg.name, confirm || msg || search);
+      if(found) log.watch(pkg.name, confirm || msg || search);
+    });
+  };
+  ClucOutputHelper.prototype.success = function(search, confirm ){
+    this.fetchThenMatchThen(search, function(found, msg){
+      if(found){
+        log.success('\t'+symbols.ok, '\n'+(confirm || msg || search )+'\n' );
+      }
     });
   };
   ClucOutputHelper.prototype.confirm = function(search, confirm ){
@@ -304,7 +336,7 @@ var ClucOutputHelper = (function(){
   ClucOutputHelper.prototype.warn = function(search, warn ){
     this.fetchThenMatchThen(search, function(found, msg){
       if(found){
-        log.warn(pkg.name, warn || msg || search);
+        log.warn('\t'+symbols.err, '\n'+' '+(warn || msg || search )+'\n' );
       }
     });
   };
@@ -324,6 +356,20 @@ var ClucOutputHelper = (function(){
         that.stdin.write('\n');
       }
     });
+  };
+  ClucOutputHelper.prototype.display = function(){
+    if( this.stdout && this.stdout.indexOf ){
+      log.info(pkg.name, this.stdout);
+    } else if(this.stdout) {
+      this.stdout.on('data', function(d){
+        log.info(pkg.name, d+'');
+      });
+      this.stderr.on('data', function(d){
+        log.info(pkg.name, d+'');
+      });
+    } else {
+      log.info(pkg.name, 'no data');
+    }
   };
 
   return ClucOutputHelper;

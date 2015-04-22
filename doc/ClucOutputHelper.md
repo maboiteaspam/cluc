@@ -6,6 +6,8 @@
         * [`ClucOutputHelper.exec`](#exec)
         * [`ClucOutputHelper.stream`](#stream)
         * [`ClucOutputHelper.run`](#run)
+        * [`ClucOutputHelper.answer`](#answer)
+        * [`ClucOutputHelper.display`](#display)
 
 ---------------------------------------
 
@@ -187,6 +189,56 @@ __Examples__
     
     (new Cluc()).exec('ls -alh', function(err, stdout, stderr, conn){
         this.must(/some/, 'some is not shown');
+    });
+```
+
+---------------------------------------
+
+
+<a name="ClucOutputHelper.answer" />
+### ClucOutputHelper.answer(question, answer)
+
+Detects a question and answers it.
+
+__Arguments__
+
+* `question` - String or RegExp to match in stdout / stderr.
+* `answer` - A text message.
+
+__Returns__
+
+
+__Examples__
+
+```js
+    var Cluc = require('cluc');
+    
+    (new Cluc()).exec('ls -alh', function(err, stdout, stderr, conn){
+        this.answer(/Would you like to continue \?/, 'yes');
+    });
+```
+
+---------------------------------------
+
+
+<a name="ClucOutputHelper.display" />
+### ClucOutputHelper.display()
+
+Displays stdout and stderr to output.
+
+__Arguments__
+
+
+__Returns__
+
+
+__Examples__
+
+```js
+    var Cluc = require('cluc');
+    
+    (new Cluc()).exec('ls -alh', function(err, stdout, stderr, conn){
+        this.display();
     });
 ```
 

@@ -4,6 +4,12 @@
     * [`Cluc.stream`](#stream)
     * [`Cluc.exec`](#exec)
     * [`Cluc.run`](#run)
+    * [`Cluc.concat`](#concat)
+    * [`Cluc.wait`](#wait)
+* [`Cluc.output.ssh`]()
+* [`Cluc.output.process`]()
+* [`Cluc.transports.ssh`]()
+* [`Cluc.transports.process`]()
 
 ---------------------------------------
 
@@ -98,6 +104,82 @@ __Examples__
         if(stderr) log.error(stderr)
         log.verbose(stdout)
         log.info('done')
+    });
+```
+
+---------------------------------------
+
+
+<a name="Cluc.concat" />
+### Cluc.concat(otherClucLine)
+
+Append another ClucLine.
+
+__Arguments__
+
+* `otherClucLine` - Another cluc line to append.
+
+__Returns__
+
+* `Cluc` - A Cluc object.
+
+__Examples__
+
+```js
+    var Cluc = require('cluc');
+    
+    var clucLine = new Cluc();
+    
+    clucLine.exec('ls -alh', function(err, stdout, stderr){
+        if(err) log.error(err);
+        if(stderr) log.error(stderr)
+        log.verbose(stdout)
+        log.info('done');
+        clucLine.wait(function(keepGoing){
+            console.log('waiting 2 sec');
+            setTimeout(function(){
+                keepGoing();
+            },2000);
+        });
+    });
+    
+    (new Cluc()).append(clucLine);
+```
+
+---------------------------------------
+
+
+<a name="Cluc.wait" />
+### Cluc.wait(continueFn)
+
+Pause the execution and wait until continueFn is called.
+
+__Arguments__
+
+* `continueFn` - A function to call when execution can continue.
+
+__Returns__
+
+* `Cluc` - A Cluc object.
+
+__Examples__
+
+```js
+    var Cluc = require('cluc');
+    
+    var clucLine = new Cluc();
+    
+    clucLine.exec('ls -alh', function(err, stdout, stderr){
+        if(err) log.error(err);
+        if(stderr) log.error(stderr)
+        log.verbose(stdout)
+        log.info('done');
+        clucLine.wait(function(keepGoing){
+            console.log('waiting 2 sec');
+            setTimeout(function(){
+                keepGoing();
+            },2000);
+        });
     });
 ```
 

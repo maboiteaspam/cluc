@@ -1,7 +1,7 @@
 
 process.env['NPM_LOG'] = process.env['NPM_LOG']
-|| 'silly'
 || 'info'
+|| 'silly'
 || 'verbose'
 ;
 
@@ -17,12 +17,16 @@ before(function(done){
   this.timeout(50000);
   vagrant.isRunning(function(running){
     if(running===false){
-      vagrant.up('precise64',function(err,booted){
+      log.info('machine is starting please be patient');
+      var box = vagrant.up('precise64',function(err,booted){
         hasBooted = booted;
+        log.info('ok we are done !');
         done();
       });
+      box.stdout.on('data', function(d){process.stdout.write(''+d)});
+      box.stderr.on('data', function(d){process.stdout.write(''+d)});
     }else{
-      console.log('running machine '+running);
+      log.info('Machine already running '+running);
       hasBooted = false;
       done();
     }
@@ -31,13 +35,16 @@ before(function(done){
 after(function(done){
     this.timeout(50000);
     vagrant.isRunning(function(running){
-      console.log('running machine '+running);
-      if(hasBooted){
-        vagrant.halt(function(){
-          console.log('halted');
+      if(hasBooted && running){
+        log.info('Machine was started by mocha, halting');
+        var box = vagrant.halt(function(){
+          console.log('done !');
           done();
         });
+        box.stdout.on('data', function(d){process.stdout.write(''+d)});
+        box.stderr.on('data', function(d){process.stdout.write(''+d)});
       } else {
+        log.info('Machine won t be shutdown');
         done();
       }
     });
@@ -56,22 +63,18 @@ describe('cluc', function(){
         if(stderr) log.error(stderr);
         this.confirm(/i can test that both windows/, 'it displays the message ');
         this.warn(/windows/, 'Windows so dirty...');
-        console.log(' ---------------------- end of exec');
       })
       .stream('node -v' , function(err,stdout,stderr){
         if(err) log.error(err);
         this.confirm(/v[0-9]+/, 'it displays the message ');
         this.confirm(/(v[0-9-.]+)/);
         this.warn(/12\.0/, 'It should not be v0.12.0.');
-        stdout.on('close',function(){
-          console.log(' ---------------------- end of stream');
-          done();
-        });
       });
 
     var ClucProcess = Cluc.transports.process;
     (new ClucProcess()).run(clucLine, function(err){
       if(err) return done(err);
+      done();
     });
   });
   it('can work on ssh', function(done){
@@ -85,21 +88,37 @@ describe('cluc', function(){
         if(stderr) log.error(stderr);
         this.confirm(/vagrant/, 'Username should display on unix.');
         this.warn(/root/, 'Some files does not belong vagrant users.');
-        console.log(' ---------------------- end of exec');
+        this.display();
       })
-      .stream('ls -alh' , function(err,stdout,stderr){
+      .stream('ls -a' , function(err,stdout,stderr){
         if(err) log.error(err);
         this.confirm(/vagrant/, 'Username should display on unix.');
         this.warn(/root/, 'Some files does not belong vagrant users.');
-        stdout.on('close',function(){
-          console.log(' ---------------------- end of stream');
-          done();
-        });
+        this.display();
       });
 
     var ClucSsh = Cluc.transports.ssh;
     (new ClucSsh()).run(clucLine, server, function(err){
       if(err) return done(err);
+      done();
+    });
+  });
+  it('extras', function(done){
+
+    var extras = require('../extras.js');
+    var Cluc = require('../index.js');
+    var server = servers.vagrant.ssh;
+
+    var clucLine = (new Cluc());
+
+    extras.precise64.apache.uninstall.call(clucLine);
+    extras.precise64.apache.install.call(clucLine);
+    extras.precise64.apache.reload.call(clucLine);
+
+    var ClucSsh = Cluc.transports.ssh;
+    (new ClucSsh()).run(clucLine, server, function(err){
+      if(err) return done(err);
+      done();
     });
   });
 });
