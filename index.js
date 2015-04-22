@@ -14,11 +14,13 @@ var Cluc = (function(){
     this.OutputHelper = OutputHelper || Cluc.output.process;
   };
   Cluc.prototype.stream = function(cmd,fn){
-    this.cmds.push({cmd:cmd, fn:fn, t:'stream'});
+    if(this.isRunning) this.cmds.unshift({cmd:cmd, fn:fn, t:'stream'});
+    else this.cmds.push({cmd:cmd, fn:fn, t:'stream'});
     return this;
   };
   Cluc.prototype.exec = function(cmd,fn){
-    this.cmds.push({cmd:cmd, fn:fn, t:'string'});
+    if(this.isRunning) this.cmds.unshift({cmd:cmd, fn:fn, t:'string'});
+    else this.cmds.push({cmd:cmd, fn:fn, t:'string'});
     return this;
   };
   Cluc.prototype.run = function(transport, then){
@@ -38,9 +40,9 @@ var Cluc = (function(){
         var cmd = cmds.shift();
         if(cmd){
           if(cmd.t=='stream'){
-            transport.stream(cmd.cmd, function(error, stderr, stdout){
+            transport.stream(cmd.cmd, function(error, stderr, stdout,stdin){
               if(stdout) stdout.on('close', _next);
-              helper.init(error, stdout, stderr);
+              helper.init(error, stdout, stderr,stdin);
               if(cmd.fn) cmd.fn.call(helper,error, stderr, stdout);
               if(!stdout) _next();
             });
@@ -270,9 +272,20 @@ var ClucOutputHelper = (function(){
     });
   };
   ClucOutputHelper.prototype.answer = function(q, a ){
+    var that = this;
     this.stdout.on('data', function(d){
-      d=''+d;
-      if(d.match(q) ) this.stdin.write(a);
+      d=d+'';
+      if(d.match(q)){
+        that.stdin.write(a);
+        that.stdin.write('\n');
+      }
+    });
+    this.stderr.on('data', function(d){
+      d=d+'';
+      if(d.match(q)){
+        that.stdin.write(a);
+        that.stdin.write('\n');
+      }
     });
   };
 
@@ -300,11 +313,11 @@ var ClucSshOutputHelper = (function(){
   ClucSshOutputHelper.prototype.is = function(search ){
     return this.server &&
       (
-        (!!this.server.hostname.match(search))
-        || (!!this.server.name && this.server.name.match(search))
-        || (!!this.server.user && this.server.user.match(search))
-        || (!!this.server.userName && this.server.userName.match(search))
-        || (!!this.server.username.match(search))
+      (!!this.server.hostname.match(search))
+      || (!!this.server.name && this.server.name.match(search))
+      || (!!this.server.user && this.server.user.match(search))
+      || (!!this.server.userName && this.server.userName.match(search))
+      || (!!this.server.username.match(search))
       )
       ;
   };
