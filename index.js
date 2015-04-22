@@ -2,12 +2,14 @@
 // command line under control
 
 var log = require('npmlog');
+var util = require('util');
 
 
 var Cluc = (function(){
-  var Cluc = function(){
+  var Cluc = function(OutputHelper){
     this.cmds = [];
     this.isRunning = false;
+    this.OutputHelper = OutputHelper || Cluc.output.process;
   };
   Cluc.prototype.stream = function(cmd,fn){
     this.cmds.push({cmd:cmd, fn:fn, t:'stream'});
@@ -17,29 +19,29 @@ var Cluc = (function(){
     this.cmds.push({cmd:cmd, fn:fn, t:'string'});
     return this;
   };
-  Cluc.prototype.run = function(transport){
+  Cluc.prototype.run = function(transport, then){
     if(!this.isRunning && this.cmds.length){
 
       this.isRunning = true;
 
-      var helper = new ClucOutputHelper();
+      var helper = this.OutputHelper;
+      if(this.OutputHelper.constructor){
+        helper = new (this.OutputHelper)();
+      }
 
       var cmds = this.cmds;
       var _next = function(){
         var cmd = cmds.shift();
-        helper.clean();
         if(cmd){
           if(cmd.t=='stream'){
             transport.stream(cmd.cmd, function(error, stderr, stdout){
               stdout.on('close', _next);
-              helper.stdout = stdout;
-              helper.stderr = stderr;
+              helper.init(error, stdout, stderr);
               cmd.fn.call(helper,error, stderr, stdout);
             });
           }else{
             transport.exec(cmd.cmd, function(error, stdout, stderr){
-              helper.stdout = stdout;
-              helper.stderr = stderr;
+              helper.init(error, stdout, stderr);
               cmd.fn.call(helper,error, stdout, stderr);
               _next();
             });
@@ -87,7 +89,7 @@ var ClucSsh = (function(){
       ssh.getConnReady( server, function(err, conn){
         if(err) throw err;
         that.conn = conn;
-        clucLine.run(then);
+        clucLine.run(this, then);
       });
     }catch(e){
       then(e);
@@ -120,8 +122,8 @@ var ClucChildProcess = (function(){
       then(e);
     }
   };
-  ClucSsh.prototype.run = function(clucLine,then){
-    clucLine.run(then);
+  ClucChildProcess.prototype.run = function(clucLine,then){
+    clucLine.run(this, then);
   };
   return ClucChildProcess;
 })();
@@ -133,14 +135,15 @@ Cluc.transports = {
 
 var ClucOutputHelper = (function(){
   var ClucOutputHelper = function(){
-    this.clean();
+    this.init();
   };
-  ClucOutputHelper.prototype.clean = function(){
-    this.stdout = null;
-    this.stderr = null;
+  ClucOutputHelper.prototype.init = function(error, stdout, stderr){
+    this.error = error || null;
+    this.stdout = stdout || null;
+    this.stderr = stderr || null;
   };
 
-  var testStreamOrString = function(streamOrStr, message, then){
+  ClucOutputHelper.testStreamOrString = function(streamOrStr, message, then){
     if( streamOrStr.indexOf ){
       then( (!!streamOrStr.match(message)) )
     } else {
@@ -157,59 +160,82 @@ var ClucOutputHelper = (function(){
   };
 
   ClucOutputHelper.prototype.must = function(search, error ){
-    testStreamOrString(this.stdout, search, function(found){
-      if(!found){
-        log.error(error);
-        throw error;
-      }
-    });
-    testStreamOrString(this.stderr, search, function(found){
-      if(!found){
-        log.error(error);
-        throw error;
-      }
+    [this.stdout,this.stderr].forEach(function(s){
+      ClucOutputHelper.testStreamOrString(s, search, function(found){
+        if(!found){
+          log.error(error);
+          throw error;
+        }
+      });
     });
   };
   ClucOutputHelper.prototype.confirm = function(search, confirm ){
-    testStreamOrString(this.stdout, search, function(found){
-      if(!found){
-        log.info(confirm);
-      }
-    });
-    testStreamOrString(this.stderr, search, function(found){
-      if(!found){
-        log.info(confirm);
-      }
+    [this.stdout,this.stderr].forEach(function(s){
+      ClucOutputHelper.testStreamOrString(s, search, function(found){
+        if(!found){
+          log.error(confirm);
+        }
+      });
     });
   };
   ClucOutputHelper.prototype.mustnot = function(search, warn ){
-    testStreamOrString(this.stdout, search, function(found){
-      if(found){
-        log.error(warn);
-        throw warn;
-      }
-    });
-    testStreamOrString(this.stderr, search, function(found){
-      if(found){
-        log.error(warn);
-        throw warn;
-      }
+    [this.stdout,this.stderr].forEach(function(s){
+      ClucOutputHelper.testStreamOrString(s, search, function(found){
+        if(found){
+          log.error(warn);
+        }
+      });
     });
   };
   ClucOutputHelper.prototype.warn = function(search, warn ){
-    testStreamOrString(this.stdout, search, function(found){
-      if(!found){
-        log.warn(warn);
-      }
-    });
-    testStreamOrString(this.stderr, search, function(found){
-      if(!found){
-        log.warn(warn);
-      }
+    [this.stdout,this.stderr].forEach(function(s){
+      ClucOutputHelper.testStreamOrString(s, search, function(found){
+        if(!found){
+          log.error(warn);
+        }
+      });
     });
   };
 
   return ClucOutputHelper;
 })();
+
+var ClucSshOutputHelper = (function(){
+  var ClucSshOutputHelper = function(){};
+
+  util.inherits(ClucSshOutputHelper, ClucOutputHelper);
+
+
+  ClucSshOutputHelper.prototype.clean = function(){
+    this.stdout = null;
+    this.stderr = null;
+    this.server = null;
+  };
+  ClucSshOutputHelper.prototype.init = function(error, stdout, stderr, server){
+    this.error = error || null;
+    this.stdout = stdout || null;
+    this.stderr = stderr || null;
+    this.server = server || null;
+  };
+
+  ClucSshOutputHelper.prototype.is = function(search ){
+    return this.server &&
+      (
+        (!!this.server.hostname.match(search))
+        || (!!this.server.name && this.server.name.match(search))
+        || (!!this.server.user && this.server.user.match(search))
+        || (!!this.server.userName && this.server.userName.match(search))
+        || (!!this.server.username.match(search))
+      )
+      ;
+  };
+
+  return ClucSshOutputHelper;
+})();
+
+Cluc.output = {
+  ssh:ClucSshOutputHelper,
+  process:ClucOutputHelper
+};
 
 module.exports = Cluc;
