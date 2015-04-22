@@ -97,7 +97,11 @@ var ClucSsh = (function(){
       ssh.getConnReady( server, function(err, conn){
         if(err) throw err;
         that.conn = conn;
-        clucLine.run(that, then);
+        clucLine.run(that, function(){
+          conn.end();
+          that.conn = null;
+          if(then) then(err);
+        });
       });
     }catch(e){
       then(e);
