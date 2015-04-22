@@ -47,13 +47,13 @@ var Cluc = (function(){
           if(cmd.t=='stream'){
             transport.stream(cmd.cmd, function(error, stderr, stdout,stdin){
               if(stdout) stdout.on('close', _next);
-              helper.init(error, stdout, stderr,stdin);
+              helper.init(cmd, error, stdout, stderr,stdin);
               if(cmd.fn) cmd.fn.call(helper,error, stdout, stderr);
               if(!stdout) _next();
             });
           }else if(cmd.t=='string'){
             transport.exec(cmd.cmd, function(error, stdout, stderr){
-              helper.init(error, stdout, stderr);
+              helper.init(cmd, error, stdout, stderr);
               if(cmd.fn) cmd.fn.call(helper, error, stdout, stderr);
               _next();
             });
@@ -193,7 +193,8 @@ var ClucOutputHelper = (function(){
   var ClucOutputHelper = function(){
     this.init();
   };
-  ClucOutputHelper.prototype.init = function(error, stdout, stderr, stdin){
+  ClucOutputHelper.prototype.init = function(cmd, error, stdout, stderr, stdin){
+    this.cmd = cmd  || null;
     this.error = error || null;
     this.stdout = stdout || null;
     this.stderr = stderr || null;
@@ -221,61 +222,90 @@ var ClucOutputHelper = (function(){
     //- logs
   };
 
-  ClucOutputHelper.testStreamOrString = function(streamOrStr, message, then){
-    if( streamOrStr && streamOrStr.indexOf ){
-      then( (!!streamOrStr.match(message)) )
-    } else if(streamOrStr) {
+  ClucOutputHelper.testStream = function(stream, search, then){
+    if(stream) {
       var found = false;
       var msg = '';
-      streamOrStr.on('data', function(d){
+      stream.on('data', function(d){
         d=d+'';
-        if(!found  ){
-          found = !!d.match(message);
-          if(found)msg+=(d.match(message)[1] || d);
+        var m = d.match(search);
+        found = !!m;
+        if(search instanceof RegExp && m && m.length ){
+          for(var i=1;i<m.length;i++){
+            then( found, m[i] );
+          }
+        }else{
+          then( found, search );
         }
       });
-      streamOrStr.on('close', function(){
-        then( found, msg )
+      stream.on('close', function(){
+        then( found, search );
       })
     }
   };
 
-  ClucOutputHelper.prototype.must = function(search, error ){
+  ClucOutputHelper.testStreamOrString = function(streamOrStr, search, then){
+    if( streamOrStr && streamOrStr.indexOf ){
+      var m = streamOrStr.match(search);
+      var found = !!m;
+      if(search instanceof RegExp && m && m[1] ){
+        search = m[1];
+      }
+      then( found, search )
+    } else if(streamOrStr) {
+      ClucOutputHelper.testStream(streamOrStr, search, then);
+    }
+  };
+
+  ClucOutputHelper.prototype.MatchStreamThen = function(search, then ){
     [this.stdout,this.stderr].forEach(function(s){
-      ClucOutputHelper.testStreamOrString(s, search, function(found, msg){
-        if(!found){
-          log.error(pkg.name, error || msg || search);
-          throw error;
+      ClucOutputHelper.testStream(s, search, then);
+    });
+  };
+  ClucOutputHelper.prototype.fetchThenMatchThen = function(search, then ){
+    var sent = false;
+    [this.stdout,this.stderr].forEach(function(s){
+      ClucOutputHelper.testStreamOrString(s, search, function( found, msg ){
+        if(!sent && found ){
+          then( found, msg );
+          sent = true;
         }
       });
+    });
+  };
+  ClucOutputHelper.prototype.must = function(search, error ){
+    this.fetchThenMatchThen(search, function(found, msg){
+      if(!found){
+        log.error(pkg.name, error || msg || search);
+        throw error;
+      }
+    });
+  };
+  ClucOutputHelper.prototype.watch = function(search, confirm ){
+    this.MatchStreamThen(search, function(found, msg){
+      if(found) log.info(pkg.name, confirm || msg || search);
     });
   };
   ClucOutputHelper.prototype.confirm = function(search, confirm ){
-    [this.stdout,this.stderr].forEach(function(s){
-      ClucOutputHelper.testStreamOrString(s, search, function(found, msg){
-        if(found){
-          log.info(pkg.name, confirm || msg || search);
-        }
-      });
+    this.fetchThenMatchThen(search, function(found, msg){
+      if(found){
+        log.info(pkg.name, confirm || msg || search);
+      }
     });
   };
   ClucOutputHelper.prototype.mustnot = function(search, warn ){
-    [this.stdout,this.stderr].forEach(function(s){
-      ClucOutputHelper.testStreamOrString(s, search, function(found, msg){
-        if(found){
-          log.error(pkg.name, warn || msg || search);
-          throw warn;
-        }
-      });
+    this.fetchThenMatchThen(search, function(found, msg){
+      if(found){
+        log.error(pkg.name, warn || msg || search);
+        throw warn;
+      }
     });
   };
   ClucOutputHelper.prototype.warn = function(search, warn ){
-    [this.stdout,this.stderr].forEach(function(s){
-      ClucOutputHelper.testStreamOrString(s, search, function(found, msg){
-        if(found){
-          log.warn(pkg.name, warn || msg || search);
-        }
-      });
+    this.fetchThenMatchThen(search, function(found, msg){
+      if(found){
+        log.warn(pkg.name, warn || msg || search);
+      }
     });
   };
   ClucOutputHelper.prototype.answer = function(q, a ){
@@ -304,13 +334,8 @@ var ClucSshOutputHelper = (function(){
 
   util.inherits(ClucSshOutputHelper, ClucOutputHelper);
 
-
-  ClucSshOutputHelper.prototype.clean = function(){
-    this.stdout = null;
-    this.stderr = null;
-    this.server = null;
-  };
-  ClucSshOutputHelper.prototype.init = function(error, stdout, stderr, server){
+  ClucSshOutputHelper.prototype.init = function(cmd, error, stdout, stderr, server){
+    this.cmd = cmd || null;
     this.error = error || null;
     this.stdout = stdout || null;
     this.stderr = stderr || null;
