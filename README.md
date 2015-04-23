@@ -6,7 +6,7 @@ Command line under control, a library to ease usage of command lines.
 
 with child_process
 ```js
-    var Cluc = require('luc');
+    var Cluc = require('cluc');
 
     var clucLine = (new Cluc())
       .exec('ls -alh' , function(err,stdout,stderr){
@@ -29,7 +29,7 @@ with child_process
 
 with ssh
 ```js
-    var Cluc = require('luc');
+    var Cluc = require('cluc');
 
     var clucLine = (new Cluc(Cluc.output.ssh))
       .exec('ls -alh' , function(err,stdout,stderr){
