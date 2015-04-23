@@ -250,15 +250,15 @@ var ClucOutputHelper = (function(){
   ClucOutputHelper.testStream = function(stream, search, then){
     if(stream) {
       var found = false;
-      var msg = '';
       stream.on('data', function(d){
         d=d+'';
         var m = d.match(search);
         found = !!m;
         if(search instanceof RegExp && m && m.length ){
-          for(var i=1;i<m.length;i++){
-            then( found, m[i] );
-          }
+          then( found, m[1] );
+          //for(var i=1;i<m.length;i++){
+          //  then( found, m[i] );
+          //}
         }else{
           then( found, search );
         }
