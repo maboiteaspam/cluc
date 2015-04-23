@@ -12,6 +12,7 @@
     "npmlog": "^1.2.0",
     "ssh2-utils": "maboiteaspam/ssh2-utils",
     "symbolsjs": "^1.0.0",
+    "underscore": "^1.8.3",
     "underscore.string": "^3.0.3",
     "unparse-args": "^1.0.1"
   },
