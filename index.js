@@ -65,14 +65,14 @@ var Cluc = (function(){
           if(cmd.t.match(/(stream|tail)/)){
             transport.stream(cmd.cmd, function(error, stderr, stdout,stdin){
               if(stdout && cmd.t=='stream') stdout.on('close', _next);
-              helper.init(cmd, error, stdout, stderr,stdin);
               if(cmd.fn) cmd.fn.call(helper,error, stdout, stderr);
+              helper.init(cmd, error, stdout, stderr,stdin);
               if(!stdout || cmd.t=='tail') _next();
             });
           }else if(cmd.t=='string'){
             transport.exec(cmd.cmd, function(error, stdout, stderr){
-              helper.init(cmd, error, stdout, stderr);
               if(cmd.fn) cmd.fn.call(helper, error, stdout, stderr);
+              helper.init(cmd, error, stdout, stderr);
               _next();
             });
           }else if(cmd.t=='wait'){
@@ -266,54 +266,21 @@ var ClucOutputHelper = (function(){
       ClucOutputHelper.testStream(s, search, then);
     });
   };
-  ClucOutputHelper.prototype.fetchThenMatchThen = function(search, then ){
-    var sent = false;
-    [this.stdout,this.stderr].forEach(function(s){
-      ClucOutputHelper.testStreamOrString(s, search, function( found, msg ){
-        if(!sent && found ){
-          then( found, msg );
-          sent = true;
-        }
-      });
-    });
-  };
 
   ClucOutputHelper.prototype.must = function(search, error ){
-    this.fetchThenMatchThen(search, function(found, msg){
-      if(!found){
-        log.error(pkg.name, error || msg || search);
-        throw error;
-      }
-    });
+    this.rules.push({t:'must',s:search,e:error});
   };
-  ClucOutputHelper.prototype.success = function(search, confirm ){
-    this.fetchThenMatchThen(search, function(found, msg){
-      if(found){
-        log.success('\t'+symbols.ok, '\n'+(confirm || msg || search )+'\n' );
-      }
-    });
+  ClucOutputHelper.prototype.success = function(search, success ){
+    this.rules.push({t:'success',s:search,e:success});
   };
   ClucOutputHelper.prototype.confirm = function(search, confirm ){
-    this.fetchThenMatchThen(search, function(found, msg){
-      if(found){
-        log.info(pkg.name, confirm || msg || search);
-      }
-    });
+    this.rules.push({t:'confirm',s:search,e:confirm});
   };
-  ClucOutputHelper.prototype.mustnot = function(search, warn ){
-    this.fetchThenMatchThen(search, function(found, msg){
-      if(found){
-        log.error(pkg.name, warn || msg || search);
-        throw warn;
-      }
-    });
+  ClucOutputHelper.prototype.mustnot = function(search, error ){
+    this.rules.push({t:'mustnot',s:search,e:error});
   };
   ClucOutputHelper.prototype.warn = function(search, warn ){
-    this.fetchThenMatchThen(search, function(found, msg){
-      if(found){
-        log.warn('\t'+symbols.err, '\n'+' '+(warn || msg || search )+'\n' );
-      }
-    });
+    this.rules.push({t:'warn',s:search,e:warn});
   };
 
   ClucOutputHelper.prototype.watch = function(search, confirm ){
@@ -323,16 +290,8 @@ var ClucOutputHelper = (function(){
   };
   ClucOutputHelper.prototype.answer = function(q, a ){
     var that = this;
-    this.stdout.on('data', function(d){
-      d=d+'';
-      if(d.match(q)){
-        that.stdin.write(a);
-        that.stdin.write('\n');
-      }
-    });
-    this.stderr.on('data', function(d){
-      d=d+'';
-      if(d.match(q)){
+    this.MatchStreamThen(q, function(found){
+      if(found){
         that.stdin.write(a);
         that.stdin.write('\n');
       }
@@ -341,6 +300,7 @@ var ClucOutputHelper = (function(){
   ClucOutputHelper.prototype.display = function(){
     if( this.stdout && this.stdout.indexOf ){
       log.info(pkg.name, this.stdout);
+      log.info(pkg.name, this.stderr);
     } else if(this.stdout) {
       this.stdout.on('data', function(d){
         log.info(pkg.name, d+'');
