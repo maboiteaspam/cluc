@@ -89,6 +89,38 @@ with ssh
         * [`ClucSshOutputHelper.warn`](doc/ClucSshOutputHelper.md#ClucSshOutputHelper.warn)
 
 
+* [`ClucRule`](doc/ClucRule.md#ClucRule)
+    * [`ClucRule.init`](doc/ClucRule.md#ClucRule.init)
+    * [`ClucRule.forgeErrorMessage`](doc/ClucRule.md#ClucRule.forgeErrorMessage)
+    * [`ClucRule.testData`](doc/ClucRule.md#ClucRule.testData)
+    * [`ClucRule.close`](doc/ClucRule.md#ClucRule.close)
+
+* [`Cluc.rules.must`](doc/ClucRule.md#ClucMust)
+        * [`ClucMust.onClose`](doc/ClucRule.md#ClucMust.onClose)
+
+* [`Cluc.rules.success`](doc/ClucRule.md#ClucSuccess)
+        * [`ClucSuccess.onceMatch`](doc/ClucRule.md#ClucSuccess.onceMatch)
+
+* [`Cluc.rules.mustnot`](doc/ClucRule.md#ClucMustNot)
+        * [`ClucMustNot.onMatch`](doc/ClucRule.md#ClucMustNot.onMatch)
+        * [`ClucMustNot.or`](doc/ClucRule.md#ClucMustNot.or)
+        * [`ClucMustNot.onClose`](doc/ClucRule.md#ClucMustNot.onClose)
+
+* [`Cluc.rules.confirm`](doc/ClucRule.md#ClucConfirm)
+        * [`ClucConfirm.onceMatch`](doc/ClucRule.md#ClucConfirm.onceMatch)
+
+* [`Cluc.rules.warn`](doc/ClucRule.md#ClucWarn)
+        * [`ClucWarn.onceMatch`](doc/ClucRule.md#ClucWarn.onceMatch)
+
+* [`Cluc.rules.watch`](doc/ClucRule.md#ClucWatch)
+        * [`ClucWatch.onMatch`](doc/ClucRule.md#ClucWatch.onMatch)
+
+* [`Cluc.rules.answer`](doc/ClucRule.md#ClucAnswer)
+        * [`ClucAnswer.onMatch`](doc/ClucRule.md#ClucAnswer.onMatch)
+
+* [`Cluc.rules.display`](doc/ClucRule.md#ClucDisplay)
+        * [`ClucDisplay.onMatch`](doc/ClucRule.md#ClucDisplay.onMatch)
+
 
 ---------------------------------------
 

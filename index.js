@@ -4,7 +4,8 @@
 var log = require('npmlog');
 log.addLevel('watch', 2001, { }, '    ');
 log.addLevel('success', 2002, { fg: 'white', bg: 'green' }, 'succ');
-log.addLevel('cmd', 2003, { fg: 'white', bg: 'grey' }, '####');
+log.addLevel('confirm', 2004, { fg: 'white', bg: 'blue' }, ' ok ');
+log.addLevel('cmd', 2003, { fg: 'white', bg: 'grey' }, '<CMD');
 
 var util = require('util');
 var pkg = require('./package.json');
@@ -59,19 +60,22 @@ var Cluc = (function(){
       var _next = function(){
         var cmd = cmds.shift();
         if(cmd){
+
+          log.cmd('',cmd.cmd);
+
           if(cmd.t.match(/(stream|tail)/)){
             transport.stream(cmd.cmd, function(error, stderr, stdout,stdin){
               if(stdout && cmd.t=='stream') stdout.on('close', _next);
               var helper = transport.getOutputHelper(cmd, error);
               if(cmd.fn) cmd.fn.call(helper,error, stdout, stderr);
-              helper.checkData(stdout, stderr, stdin);
+              helper.executeRules(stdout, stderr, stdin);
               if(!stdout || cmd.t=='tail') _next();
             });
           }else if(cmd.t=='string'){
             transport.exec(cmd.cmd, function(error, stdout, stderr){
               var helper = transport.getOutputHelper(cmd, error);
               if(cmd.fn) cmd.fn.call(helper, error, stdout, stderr);
-              helper.checkData(stdout, stderr);
+              helper.executeRules(stdout, stderr);
               _next();
             });
           }else if(cmd.t=='wait'){
@@ -104,10 +108,7 @@ var ClucSsh = (function(){
   ClucSsh.prototype.stream = function(cmdStr,then){
     var conn = this.conn;
     try{
-      log.cmd(pkg.name, cmdStr);
       ssh.run( conn, cmdStr, function(err, stream, stderr){
-        stream.setMaxListeners(50);
-        stderr.setMaxListeners(50);
         then(err, stream, stderr, stream, conn);
       });
     }catch(e){
@@ -164,7 +165,6 @@ var ClucChildProcess = (function(){
   };
   ClucChildProcess.prototype.stream = function(cmdStr,then){
     try{
-      log.info(pkg.name, cmdStr);
       // - command line parser. Could not find how to re use node parser.
       cmdStr = cmdStr.match(/^([^ ]+)(.+)/);
       var prgm = cmdStr[1];
@@ -197,8 +197,6 @@ var ClucChildProcess = (function(){
       // - command line parser. Could not find how to re use node parser.
 
       var c = child_process.spawn(prgm, args);
-      c.stdout.setMaxListeners(50);
-      c.stderr.setMaxListeners(50);
       then(null, c.stderr,  c.stdout, c.stdin, c);
     }catch(e){
       then(e);
@@ -206,7 +204,6 @@ var ClucChildProcess = (function(){
   };
   ClucChildProcess.prototype.exec = function(cmdStr,then){
     try{
-      log.info(pkg.name, cmdStr);
       var c = child_process.exec(cmdStr, function(error, stdout, stderr){
         then(error, stdout, stderr, c);
       })
@@ -241,137 +238,86 @@ var ClucOutputHelper = (function(){
     this.cmd = cmd  || null;
     this.error = error || null;
     this.rules = [];
-    this.stdin = null;
-  };
-  ClucOutputHelper.prototype.checkData = function(stdout, stderr, stdin){
-    this.stdin = stdin;
-    var rules = this.rules;
-
-    var execRule = function(rule, match){
-      if(rule.t==="must"){
-      }else if(rule.t==="success"){
-      }else if(rule.t==="success"){
-      }else if(rule.t==="confirm"){
-      }else if(rule.t==="mustnot"){
-      }else if(rule.t==="warn"){
-      }
-    };
-
-    if(_.isString(stdout)){
-      rules.forEach(function(rule){
-        if(stdout.match(rule.s)){
-          execRule(rule, stdout.match(rule.s));
-        }
-        if(stderr.match(rule.s)){
-          execRule(rule, stderr.match(rule.s));
-        }
-      });
-    } else{
-      stdout.on('data' , function(d){
-        d = ''+d;
-        rules.forEach(function(rule){
-          if(d.match(rule.s)){
-            execRule(rule, d.match(rule.s));
-          }
-        });
-      });
-      stderr.on('data' , function(d){
-        d = ''+d;
-        rules.forEach(function(rule){
-          if(d.match(rule.s)){
-            execRule(rule, d.match(rule.s));
-          }
-        });
-      });
-    }
   };
 
-
-  ClucOutputHelper.testStream = function(stream, search, then){
-    if(stream) {
-      var found = false;
-      stream.on('data', function(d){
-        d=d+'';
-        var m = d.match(search);
-        found = !!m;
-        if(search instanceof RegExp && m && m.length ){
-          for(var i=1;i<m.length;i++){
-            then( found, m[i] );
-          }
-        }else{
-          then( found, search );
-        }
-      });
-      stream.on('close', function(){
-        then( found, search );
-      })
-    }
+  ClucOutputHelper.prototype.pushRule = function(Rule, search, userMsg ){
+    var rule = new Rule();
+    rule.init(search, userMsg);
+    this.rules.push(rule);
+    return rule;
   };
-
-  ClucOutputHelper.testStreamOrString = function(streamOrStr, search, then){
-    if( streamOrStr && streamOrStr.indexOf ){
-      var m = streamOrStr.match(search);
-      var found = !!m;
-      if(search instanceof RegExp && m && m[1] ){
-        search = m[1];
-      }
-      then( found, search )
-    } else if(streamOrStr) {
-      ClucOutputHelper.testStream(streamOrStr, search, then);
-    }
-  };
-
-  ClucOutputHelper.prototype.MatchStreamThen = function(search, then ){
-    [this.stdout,this.stderr].forEach(function(s){
-      ClucOutputHelper.testStream(s, search, then);
-    });
-  };
-
-  ClucOutputHelper.prototype.must = function(search, error ){
-    this.rules.push({t:'must',s:search,e:error});
+  ClucOutputHelper.prototype.must = function(search, error){
+    return this.pushRule(ClucMust, search, error);
   };
   ClucOutputHelper.prototype.success = function(search, success ){
-    this.rules.push({t:'success',s:search,e:success});
+    return this.pushRule(ClucSuccess, search, success);
   };
   ClucOutputHelper.prototype.confirm = function(search, confirm ){
-    this.rules.push({t:'confirm',s:search,e:confirm});
+    return this.pushRule(ClucConfirm, search, confirm);
   };
   ClucOutputHelper.prototype.mustnot = function(search, error ){
-    this.rules.push({t:'mustnot',s:search,e:error});
+    return this.pushRule(ClucMustNot, search, error);
   };
   ClucOutputHelper.prototype.warn = function(search, warn ){
-    this.rules.push({t:'warn',s:search,e:warn});
+    return this.pushRule(ClucWarn, search, warn);
   };
 
   ClucOutputHelper.prototype.watch = function(search, confirm ){
-    this.MatchStreamThen(search, function(found, msg){
-      if(found) log.watch(pkg.name, confirm || msg || search);
-    });
+    return this.pushRule(ClucWatch, search, confirm);
   };
-  ClucOutputHelper.prototype.answer = function(q, a ){
-    var that = this;
-    this.MatchStreamThen(q, function(found){
-      if(found){
-        that.stdin.write(a);
-        that.stdin.write('\n');
-      }
-    });
+  ClucOutputHelper.prototype.answer = function(q, a){
+    return this.pushRule(ClucAnswer, q, a);
+    /*
+
+     var that = this;
+     this.MatchStreamThen(q, function(found){
+     if(found){
+     that.stdin.write(a);
+     that.stdin.write('\n');
+     }
+     });
+     */
   };
   ClucOutputHelper.prototype.display = function(){
-    if( this.stdout && this.stdout.indexOf ){
-      log.info(pkg.name, this.stdout);
-      log.info(pkg.name, this.stderr);
-    } else if(this.stdout) {
-      this.stdout.on('data', function(d){
-        log.info(pkg.name, d+'');
+    return this.pushRule(ClucDisplay, /.*/g);
+  };
+
+
+
+  ClucOutputHelper.prototype.executeRules = function(stdout, stderr, stdin){
+    this.stdin = stdin;
+    var rules = this.rules;
+
+    if(_.isString(stdout)){
+      rules.forEach(function(rule){
+        rule.testData(stdout);
+        rule.testData(stderr);
       });
-      this.stderr.on('data', function(d){
-        log.info(pkg.name, d+'');
+      rules.forEach(function(rule){
+        rule.close();
+        rule.close();
       });
-    } else {
-      log.info(pkg.name, 'no data');
+    } else{
+      stdout.on('data' , function(d){
+        rules.forEach(function(rule){
+          rule.testData((''+d));
+        });
+      });
+      stderr.on('data' , function(d){
+        rules.forEach(function(rule){
+          rule.testData((''+d));
+        });
+      });
+
+      stdout.on('close' , function(){
+        rules.forEach(function(rule){
+          rule.close();
+        });
+      });
     }
   };
+
+
 
   return ClucOutputHelper;
 })();
@@ -405,6 +351,161 @@ var ClucSshOutputHelper = (function(){
 Cluc.output = {
   ssh:ClucSshOutputHelper,
   process:ClucOutputHelper
+};
+
+var ClucRule = (function(){
+  var ClucRule = function(){};
+
+  ClucRule.prototype.init = function(search, userDefinedMessage){
+    this.matched = null;
+    this.capturedData = null;
+    this.hasMatchedOnce = false;
+    this.search = search;
+    this.userDefinedMessage = userDefinedMessage;
+  };
+
+  ClucRule.prototype.forgeErrorMessage = function(){
+    if(_.isString(this.userDefinedMessage) ){
+      if(this.search instanceof RegExp ){
+        var m = [].concat(this.matched);
+        m.shift();
+        return _s.vsprintf(this.userDefinedMessage, m);
+      }
+      return this.userDefinedMessage;
+    }
+    if(_.isString(this.search) ){
+      return this.matched;
+    }
+    if(this.search instanceof RegExp ){
+      return this.matched[1] || this.search;
+    }
+  };
+
+  ClucRule.prototype.testData = function(data){
+    this.capturedData = data;
+    this.matched = (''+data).match(this.search);
+    if(!this.hasMatchedOnce && !!this.matched === true){
+      this.hasMatchedOnce = true;
+      if(this.onceMatch){
+        this.onceMatch();
+      }
+    }
+    if(this.onMatch){
+      this.onMatch(!!this.matched);
+    }
+  };
+
+  ClucRule.prototype.close = function(){
+    if(this.capturedData===null){
+      this.matched = false;
+    }
+    if(this.onClose){
+      this.onClose(!!this.matched);
+    }
+  };
+
+  return ClucRule;
+})();
+
+var ClucMust = (function(){
+  var ClucMust = function(){};
+  util.inherits(ClucMust, ClucRule);
+  ClucMust.prototype.onClose = function(matched){
+    if(!matched){
+      log.warn(' '+symbols.err+' ', '\n'+' '+(this.forgeErrorMessage() )+'\n' );
+    }
+  };
+  return ClucMust;
+})();
+
+var ClucSuccess = (function(){
+  var ClucSuccess = function(){};
+  util.inherits(ClucSuccess, ClucRule);
+  ClucSuccess.prototype.onceMatch = function(){
+    log.success(' '+symbols.ok+' ', '\n'+(this.forgeErrorMessage() )+'\n' );
+  };
+  return ClucSuccess;
+})();
+
+var ClucMustNot = (function(){
+  var ClucMustNot = function(){};
+  util.inherits(ClucMustNot, ClucRule);
+  ClucMustNot.prototype.onMatch = function(matched){
+    if(matched){
+      log.error(' '+symbols.err+' ', '\n'+(this.forgeErrorMessage() )+'\n' );
+    }
+  };
+  ClucMustNot.prototype.or = function(fn){
+    this.orFn = fn;
+  };
+  ClucMustNot.prototype.onClose = function(){
+    if(this.orFn && this.matched){
+      this.orFn();
+    }
+  };
+  return ClucMustNot;
+})();
+
+var ClucConfirm = (function(){
+  var ClucConfirm = function(){};
+  util.inherits(ClucConfirm, ClucRule);
+  ClucConfirm.prototype.onceMatch = function(){
+    log.confirm('   ', this.forgeErrorMessage());
+  };
+  return ClucConfirm;
+})();
+
+var ClucWarn = (function(){
+  var ClucWarn = function(){};
+  util.inherits(ClucWarn, ClucRule);
+  ClucWarn.prototype.onceMatch = function(){
+    log.warn('   ', this.forgeErrorMessage());
+  };
+  return ClucWarn;
+})();
+
+var ClucWatch = (function(){
+  var ClucWatch = function(){};
+  util.inherits(ClucWatch, ClucRule);
+  ClucWatch.prototype.onMatch = function(matched){
+    if(matched){
+      log.watch('   ', this.forgeErrorMessage() );
+    }
+  };
+  return ClucWatch;
+})();
+
+var ClucAnswer = (function(){
+  var ClucAnswer = function(){};
+  util.inherits(ClucAnswer, ClucRule);
+  ClucAnswer.prototype.onMatch = function(matched){
+    if(matched){
+      this.stdin.write(this.userDefinedMessage);
+      this.stdin.write('\n');
+    }
+  };
+  return ClucAnswer;
+})();
+
+var ClucDisplay = (function(){
+  var ClucDisplay = function(){};
+  util.inherits(ClucDisplay, ClucRule);
+  ClucDisplay.prototype.onMatch = function(){
+    var data = this.capturedData===null?'no data':this.capturedData;
+    log.watch('   ', data);
+  };
+  return ClucDisplay;
+})();
+
+Cluc.rule = {
+  must:ClucMust,
+  success:ClucSuccess,
+  confirm:ClucConfirm,
+  mustnot:ClucMustNot,
+  warn:ClucWarn,
+  watch:ClucWatch,
+  answer:ClucAnswer,
+  display:ClucDisplay
 };
 
 module.exports = Cluc;

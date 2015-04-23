@@ -17,7 +17,8 @@ module.exports = {
           this.watch(/(Reading package lists.+)/i);
           this.watch(/(Building dependency tree.+)/i);
           this.watch(/(Reading state information.+)/i);
-          this.confirm(/(1 to remove)/i, 'Package to remove found');
+          this.mustnot(/0 to remove/, 'no package to remove found');
+          this.confirm(/([1-9]+) to remove/, ' found %s package to remove');
           this.success(/(Removing [^ ]+\s+[.]+)/i, 'Package removed !');
           this.warn(/(Unable to locate package )/i, 'Package not found');
         });

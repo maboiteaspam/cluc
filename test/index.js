@@ -66,9 +66,13 @@ describe('cluc', function(){
       })
       .stream('node -v' , function(err,stdout,stderr){
         if(err) log.error(err);
-        this.confirm(/v[0-9]+/, 'it displays the message ');
+        this.confirm(/v([0-9]+)\.([0-9]+)\.([0-9]+)/, 'Node version is v%s.%s.%s ');
         this.confirm(/(v[0-9-.]+)/);
-        this.warn(/12\.0/, 'It should not be v0.12.0.');
+        this.success(/12\.0/, 'It s the latest !');
+        this.mustnot(/12\.0/, 'It should not be v0.12.0.').or(function(){
+          console.error('do something because it displayed 12.0 version of node')
+        });
+        this.display()
       });
 
     var ClucProcess = Cluc.transports.process;
@@ -103,6 +107,7 @@ describe('cluc', function(){
       done();
     });
   });
+
   it('extras', function(done){
 
     var extras = require('../extras.js');
