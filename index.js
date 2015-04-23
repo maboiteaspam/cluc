@@ -19,18 +19,18 @@ var Cluc = (function(){
     this.OutputHelper = OutputHelper || Cluc.output.process;
   };
   Cluc.prototype.stream = function(cmd,fn){
-    if(this.isRunning) this.cmds.unshift({cmd:cmd, fn:fn, t:'stream'});
-    else this.cmds.push({cmd:cmd, fn:fn, t:'stream'});
+    if(this.isRunning) this.cmds.unshift({cmd:cmd, fn:fn, t:'stream',s:null});
+    else this.cmds.push({cmd:cmd, fn:fn, t:'stream',s:null});
     return this;
   };
   Cluc.prototype.tail = function(cmd,fn){
-    if(this.isRunning) this.cmds.unshift({cmd:cmd, fn:fn, t:'tail'});
-    else this.cmds.push({cmd:cmd, fn:fn, t:'tail'});
+    if(this.isRunning) this.cmds.unshift({cmd:cmd, fn:fn, t:'tail',s:null});
+    else this.cmds.push({cmd:cmd, fn:fn, t:'tail',s:null});
     return this;
   };
   Cluc.prototype.exec = function(cmd,fn){
-    if(this.isRunning) this.cmds.unshift({cmd:cmd, fn:fn, t:'string'});
-    else this.cmds.push({cmd:cmd, fn:fn, t:'string'});
+    if(this.isRunning) this.cmds.unshift({cmd:cmd, fn:fn, t:'string',s:null});
+    else this.cmds.push({cmd:cmd, fn:fn, t:'string',s:null});
     return this;
   };
   Cluc.prototype.wait = function(fn){
@@ -224,27 +224,7 @@ var ClucOutputHelper = (function(){
     this.stdout = stdout || null;
     this.stderr = stderr || null;
     this.stdin = stdin || null;
-
-    //- logs
-    if(this.stdout){
-      if( this.stdout.indexOf ){
-        log.silly(this.stdout)
-      }else{
-        this.stdout.on('data', function(d){
-          log.silly(''+d);
-        });
-      }
-    }
-    if(this.stderr){
-      if( this.stderr.indexOf ){
-        log.silly(this.stderr)
-      }else{
-        this.stderr.on('data', function(d){
-          log.silly(''+d);
-        });
-      }
-    }
-    //- logs
+    this.rules = [];
   };
 
   ClucOutputHelper.testStream = function(stream, search, then){
@@ -255,10 +235,9 @@ var ClucOutputHelper = (function(){
         var m = d.match(search);
         found = !!m;
         if(search instanceof RegExp && m && m.length ){
-          then( found, m[1] );
-          //for(var i=1;i<m.length;i++){
-          //  then( found, m[i] );
-          //}
+          for(var i=1;i<m.length;i++){
+            then( found, m[i] );
+          }
         }else{
           then( found, search );
         }
@@ -298,17 +277,13 @@ var ClucOutputHelper = (function(){
       });
     });
   };
+
   ClucOutputHelper.prototype.must = function(search, error ){
     this.fetchThenMatchThen(search, function(found, msg){
       if(!found){
         log.error(pkg.name, error || msg || search);
         throw error;
       }
-    });
-  };
-  ClucOutputHelper.prototype.watch = function(search, confirm ){
-    this.MatchStreamThen(search, function(found, msg){
-      if(found) log.watch(pkg.name, confirm || msg || search);
     });
   };
   ClucOutputHelper.prototype.success = function(search, confirm ){
@@ -338,6 +313,12 @@ var ClucOutputHelper = (function(){
       if(found){
         log.warn('\t'+symbols.err, '\n'+' '+(warn || msg || search )+'\n' );
       }
+    });
+  };
+
+  ClucOutputHelper.prototype.watch = function(search, confirm ){
+    this.MatchStreamThen(search, function(found, msg){
+      if(found) log.watch(pkg.name, confirm || msg || search);
     });
   };
   ClucOutputHelper.prototype.answer = function(q, a ){
