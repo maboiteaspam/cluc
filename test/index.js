@@ -69,10 +69,12 @@ describe('cluc', function(){
         this.confirm(/v([0-9]+)\.([0-9]+)\.([0-9]+)/, 'Node version is v%s.%s.%s ');
         this.confirm(/(v[0-9-.]+)/);
         this.success(/12\.0/, 'It s the latest !');
-        this.mustnot(/12\.0/, 'It should not be v0.12.0.').or(function(){
-          console.error('do something because it displayed 12.0 version of node')
-        });
-        this.display()
+        this.mustnot(/12\.0/, 'It should not be v0.12.0.').or(clucLine.die());
+        this.display();
+      })
+      .stream('echo "should not appear"' , function(err,stdout,stderr){
+        if(err) log.error(err);
+        this.display();
       });
 
     var ClucProcess = Cluc.transports.process;

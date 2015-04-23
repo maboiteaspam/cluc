@@ -57,26 +57,48 @@ var Cluc = (function(){
 
       var cmds = that.cmds;
 
+      var checkDeadLine = function(then){
+        if(that.died){
+          var errorMsg = '\n';
+          errorMsg += 'end of process, reason is :';
+          errorMsg += '\n';
+          errorMsg += that.DieRule.forgeErrorMessage();
+          errorMsg += '\n';
+          errorMsg += 'at '+_s.trim(that.DieLine).replace(/.+\(([^):]+):([0-9]+):([0-9]+)\)/, "$1, line $2 col $3");
+          errorMsg += '\n';
+          log.error('', errorMsg);
+          var err = new Error(errorMsg);
+          err.message = errorMsg;
+          if(then) then(err);
+          return false;
+        }
+        return true;
+      };
+
       var _next = function(){
         var cmd = cmds.shift();
         if(cmd){
+
+          if(!checkDeadLine(then))return false;
 
           log.cmd('',cmd.cmd);
 
           if(cmd.t.match(/(stream|tail)/)){
             transport.stream(cmd.cmd, function(error, stderr, stdout,stdin){
-              if(stdout && cmd.t=='stream') stdout.on('close', _next);
+              if(stdout && cmd.t=='stream') stdout.on('close', function(){
+                if(checkDeadLine(then)) process.nextTick(_next)
+              });
               var helper = transport.getOutputHelper(cmd, error);
               if(cmd.fn) cmd.fn.call(helper,error, stdout, stderr);
               helper.executeRules(stdout, stderr, stdin);
-              if(!stdout || cmd.t=='tail') _next();
+              if(!stdout || cmd.t=='tail') if(checkDeadLine(then)) _next();
             });
           }else if(cmd.t=='string'){
             transport.exec(cmd.cmd, function(error, stdout, stderr){
               var helper = transport.getOutputHelper(cmd, error);
               if(cmd.fn) cmd.fn.call(helper, error, stdout, stderr);
               helper.executeRules(stdout, stderr);
-              _next();
+              if(checkDeadLine(then)) _next();
             });
           }else if(cmd.t=='wait'){
             cmd.fn(_next)
@@ -92,6 +114,20 @@ var Cluc = (function(){
       then();
     }
     return false;
+  };
+  Cluc.prototype.die = function(){
+    var err = new Error();
+    var s = err.stack.split('\n');
+    s.shift();
+    s.shift();
+    var line = s.shift();
+    var that = this;
+    return function(rule){
+      that.died = true;
+      that.DieError = err;
+      that.DieLine = line;
+      that.DieRule = rule;
+    }
   };
   return Cluc;
 })();
@@ -267,16 +303,6 @@ var ClucOutputHelper = (function(){
   };
   ClucOutputHelper.prototype.answer = function(q, a){
     return this.pushRule(ClucAnswer, q, a);
-    /*
-
-     var that = this;
-     this.MatchStreamThen(q, function(found){
-     if(found){
-     that.stdin.write(a);
-     that.stdin.write('\n');
-     }
-     });
-     */
   };
   ClucOutputHelper.prototype.display = function(){
     return this.pushRule(ClucDisplay, /.*/g);
@@ -440,7 +466,7 @@ var ClucMustNot = (function(){
   };
   ClucMustNot.prototype.onClose = function(){
     if(this.orFn && this.matched){
-      this.orFn();
+      this.orFn(this);
     }
   };
   return ClucMustNot;
