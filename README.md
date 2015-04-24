@@ -50,7 +50,7 @@ with ssh
 
 # API
 
-* [`Cluc`](doc/Cluc.md#Cluc)
+#### [`Cluc`](doc/Cluc.md#Cluc)
     * [`Cluc.stream`](doc/Cluc.md#Cluc.stream)
     * [`Cluc.tail`](doc/Cluc.md#Cluc.tail)
     * [`Cluc.exec`](doc/Cluc.md#Cluc.#exec)
@@ -59,15 +59,15 @@ with ssh
     * [`Cluc.concat`](doc/Cluc.md#Cluc.#concat)
     * [`Cluc.die`](doc/Cluc.md#Cluc.#die)
         
-* [`Cluc.transports`]()
+#### [`Cluc.transports`]()
     * [`Cluc.transports.process`](doc/ClucChildProcess.md)
     * [`Cluc.transports.ssh`](doc/ClucSsh.md#ClucSsh)
     
-* [`Cluc.output`]()
+#### [`Cluc.output`]()
     * [`Cluc.output.process`](doc/ClucContext.md)
     * [`Cluc.output.ssh`](doc/ClucSSHContext.md)
     
-* [`Cluc.rules`]()
+#### [`Cluc.rules`]()
     * [`Cluc.rules.must`](doc/ClucRule.md#ClucMust)
     * [`Cluc.rules.success`](doc/ClucRule.md#ClucSuccess)
     * [`Cluc.rules.mustnot`](doc/ClucRule.md#ClucMustNot)
@@ -78,14 +78,14 @@ with ssh
     * [`Cluc.rules.display`](doc/ClucRule.md#ClucDisplay)
 
 
-* [`ClucChildProcess`](doc/ClucChildProcess.md#ClucSsh)
+#### [`ClucChildProcess`](doc/ClucChildProcess.md#ClucSsh)
     * [`ClucChildProcess.exec`](doc/ClucChildProcess.md#ClucSsh.exec)
     * [`ClucChildProcess.stream`](doc/ClucChildProcess.md#ClucSsh.stream)
     * [`ClucChildProcess.run`](doc/ClucChildProcess.md#ClucSsh.run)
     * [`ClucChildProcess.createContext`](doc/ClucChildProcess.md#ClucSsh.createContext)
     
 
-* [`ClucContext`](doc/ClucContext.md#ClucContext)
+#### [`ClucContext`](doc/ClucContext.md#ClucContext)
     * [`ClucContext.init`](doc/ClucContext.md#ClucContext.init)
     * [`ClucContext.pushRule`](doc/ClucContext.md#ClucContext.pushRule)
     * [`ClucContext.must`](doc/ClucContext.md#ClucContext.must)
@@ -99,14 +99,14 @@ with ssh
     * [`ClucContext.redo`](doc/ClucContext.md#ClucContext.redo)
     
 
-* [`ClucSsh`](doc/ClucSsh.md#ClucSsh)
+#### [`ClucSsh`](doc/ClucSsh.md#ClucSsh)
     * [`ClucSsh.exec`](doc/ClucSsh.md#ClucSsh.exec)
     * [`ClucSsh.stream`](doc/ClucSsh.md#ClucSsh.stream)
     * [`ClucSsh.run`](doc/ClucSsh.md#ClucSsh.run)
     * [`ClucSsh.createContext`](doc/ClucSsh.md#ClucSsh.createContext)
     
         
-* [`ClucSSHContext`](doc/ClucSSHContext.md#ClucSSHContext)
+#### [`ClucSSHContext`](doc/ClucSSHContext.md#ClucSSHContext)
     * [`ClucSSHContext.init`](doc/ClucSSHContext.md#ClucSSHContext.init)
     * [`ClucSSHContext.pushRule`](doc/ClucSSHContext.md#ClucSSHContext.pushRule)
     * [`ClucSSHContext.is`](doc/ClucSSHContext.md#ClucSSHContext.is)
@@ -121,7 +121,7 @@ with ssh
     * [`ClucSSHContext.redo`](doc/ClucSSHContext.md#ClucSSHContext.redo)
 
 
-* [`ClucRule`](doc/ClucRule.md#ClucRule)
+#### [`ClucRule`](doc/ClucRule.md#ClucRule)
     * [`ClucRule.init`](doc/ClucRule.md#ClucRule.init)
     * [`ClucRule.forgeErrorMessage`](doc/ClucRule.md#ClucRule.forgeErrorMessage)
     * [`ClucRule.testData`](doc/ClucRule.md#ClucRule.testData)
@@ -130,35 +130,35 @@ with ssh
     * [`ClucRule.or`](doc/ClucRule.md#ClucRule.or)
     
     
-* [`ClucMust`](doc/ClucRule.md#ClucMust)
+#### [`ClucMust`](doc/ClucRule.md#ClucMust)
     * [`ClucMust.onClose`](doc/ClucRule.md#ClucMust.onClose)
     
     
-* [`ClucSuccess`](doc/ClucRule.md#ClucSuccess)
+#### [`ClucSuccess`](doc/ClucRule.md#ClucSuccess)
     * [`ClucSuccess.onceMatch`](doc/ClucRule.md#ClucSuccess.onceMatch)
     
     
-* [`ClucMustNot`](doc/ClucRule.md#ClucMustNot)
+#### [`ClucMustNot`](doc/ClucRule.md#ClucMustNot)
     * [`ClucMustNot.onMatch`](doc/ClucRule.md#ClucMustNot.onMatch)
     
     
-* [`ClucConfirm`](doc/ClucRule.md#ClucConfirm)
+#### [`ClucConfirm`](doc/ClucRule.md#ClucConfirm)
     * [`ClucConfirm.onceMatch`](doc/ClucRule.md#ClucConfirm.onceMatch)
     
     
-* [`ClucWarn`](doc/ClucRule.md#ClucWarn)
+#### [`ClucWarn`](doc/ClucRule.md#ClucWarn)
     * [`ClucWarn.onceMatch`](doc/ClucRule.md#ClucWarn.onceMatch)
     
     
-* [`ClucWatch`](doc/ClucRule.md#ClucWatch)
+#### [`ClucWatch`](doc/ClucRule.md#ClucWatch)
     * [`ClucWatch.onMatch`](doc/ClucRule.md#ClucWatch.onMatch)
     
     
-* [`ClucAnswer`](doc/ClucRule.md#ClucAnswer)
+#### [`ClucAnswer`](doc/ClucRule.md#ClucAnswer)
     * [`ClucAnswer.onMatch`](doc/ClucRule.md#ClucAnswer.onMatch)
     
     
-* [`ClucDisplay`](doc/ClucRule.md#ClucDisplay)
+#### [`ClucDisplay`](doc/ClucRule.md#ClucDisplay)
     * [`ClucDisplay.onMatch`](doc/ClucRule.md#ClucDisplay.onMatch)
 
 
