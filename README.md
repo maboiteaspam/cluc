@@ -58,7 +58,7 @@ with ssh
 * [`Cluc.wait`](doc/Cluc.md#Cluc.#wait)
 * [`Cluc.concat`](doc/Cluc.md#Cluc.#concat)
 * [`Cluc.die`](doc/Cluc.md#Cluc.#die)
-    
+
 #### [`Cluc.transports`]()
 * [`Cluc.transports.process`](doc/ClucChildProcess.md)
 * [`Cluc.transports.ssh`](doc/ClucSsh.md#ClucSsh)
