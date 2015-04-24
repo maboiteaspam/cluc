@@ -51,68 +51,89 @@ var Cluc = (function(){
   };
   Cluc.prototype.run = function(transport, then){
     var that = this;
+    var cmds = that.cmds;
 
     if(!this.isRunning && this.cmds.length){
 
       this.isRunning = true;
 
-      var cmds = that.cmds;
+      var _next = function(context){
 
-      var hasDied = function(then){
-        if(that.died){
-          var errorMsg = '\n';
-          errorMsg += 'end of process, reason is :';
-          errorMsg += '\n';
-          errorMsg += that.DieRule.forgeErrorMessage();
-          errorMsg += '\n';
-          errorMsg += 'at '+_s.trim(that.DieLine).replace(/.+\(([^):]+):([0-9]+):([0-9]+)\)/, "$1, line $2 col $3");
-          errorMsg += '\n';
-          log.error('', errorMsg);
-          var err = new Error(errorMsg);
-          err.message = errorMsg;
-          if(then) then(err);
-          return false;
+        var cmd = null;
+        if(!(context instanceof ClucContext)){
+          if(!cmds.length){
+            that.isRunning = false;
+            return then();
+          }
+          cmd = cmds.shift();
+          context = transport.createContext();
+        }else{
+          cmd = context.cmd;
         }
-        return true;
-      };
 
-      var _next = function(){
+        context.init(cmd);
+        var cmdStr = cmd.cmd;
 
-        if(!hasDied(then))return false;
+        log.cmd('', cmdStr);
 
-        var cmd = cmds.shift();
-        if(cmd){
+        if(context){
 
-          log.cmd('',cmd.cmd);
+          var execType = cmd.t;
 
-          if(cmd.t.match(/(stream|tail)/)){
-            transport.stream(cmd.cmd, function(error, stderr, stdout,stdin){
-              if(stdout && cmd.t=='stream') stdout.on('close', function() { process.nextTick(_next); });
-              var helper = transport.getOutputHelper(cmd, error);
-              if(cmd.fn) cmd.fn.call(helper,error, stdout, stderr);
-              helper.executeRules(stdout, stderr, stdin);
-              if(!stdout || cmd.t=='tail') _next();
+          if(execType.match(/(stream|tail)/)){
+            transport.stream(cmdStr, function(error, stderr, stdout,stdin){
+              context.executeRules(error, stdout, stderr, stdin);
+              if(stdout && execType=='stream')
+                stdout.on('close', function() {
+                  var orFn = context.getOrFn();
+                  if(context.hasFailed() && orFn ){
+                    if(context.canRedo()){
+                      return _next( context );
+                    }else {
+                      var isDead = orFn(context.getFailureMessages());
+                      if(isDead instanceof Error ){
+                        return then( isDead );
+                      }
+                    }
+                  }
+                  _next();
+                });
+              if(!stdout || execType=='tail') _next();
             });
-          }else if(cmd.t=='string'){
-            transport.exec(cmd.cmd, function(error, stdout, stderr){
-              var helper = transport.getOutputHelper(cmd, error);
-              if(cmd.fn) cmd.fn.call(helper, error, stdout, stderr);
-              helper.executeRules(stdout, stderr);
+
+          }else if(execType=='string'){
+            transport.exec(cmdStr, function(error, stdout, stderr){
+              context.executeRules(error, stdout, stderr);
+              var orFn = context.getOrFn();
+              if(context.hasFailed() && orFn ){
+                if(context.canRedo()){
+                  return _next( context );
+                }else {
+                  var isDead = orFn(context.getFailureMessages());
+                  if(isDead instanceof Error ){
+                    return then( isDead );
+                  }
+                }
+              }
               _next();
             });
-          }else if(cmd.t=='wait'){
-            cmd.fn(_next)
+
+          }else if(execType=='wait'){
+            cmd.fn(function(){
+              _next();
+            })
           }
-        }else if(!cmds.length){
-          that.isRunning = false;
-          then();
+
         }
       };
       _next();
+
       return true;
-    }else if(!this.cmds.length){
+
+    }else if(!cmds.length){
       then();
     }
+
     return false;
   };
   Cluc.prototype.die = function(){
@@ -121,12 +142,16 @@ var Cluc = (function(){
     s.shift();
     s.shift();
     var line = s.shift();
-    var that = this;
-    return function(rule){
-      that.died = true;
-      that.DieError = err;
-      that.DieLine = line;
-      that.DieRule = rule;
+    line = _s.trim(line).replace(/.+\(([^):]+):([0-9]+):([0-9]+)\)/, "$1, line $2 col $3");
+    return function(reason){
+      var errorMsg = '\nend of process, reason is :';
+      errorMsg += '\n' + (_.isArray(reason) ? reason.join('\n') : reason );
+      errorMsg += '\n' + 'at '+line;
+      errorMsg += '\n';
+      log.error('', errorMsg);
+      var err = new Error(errorMsg);
+      err.message = errorMsg;
+      return err;
     }
   };
   return Cluc;
@@ -162,13 +187,8 @@ var ClucSsh = (function(){
       then(e);
     }
   };
-  ClucSsh.prototype.getOutputHelper = function(cmd, error){
-    var helper = this.OutputHelper;
-    if(this.OutputHelper.constructor){
-      helper = new (this.OutputHelper)();
-    }
-    helper.init(cmd, error, this.server);
-    return helper;
+  ClucSsh.prototype.createContext = function(){
+    return new (this.OutputHelper)(this.server);
   };
   ClucSsh.prototype.run = function(clucLine,server,then){
     var that = this;
@@ -247,13 +267,8 @@ var ClucChildProcess = (function(){
       then(e);
     }
   };
-  ClucChildProcess.prototype.getOutputHelper = function(cmd, error){
-    var helper = this.OutputHelper;
-    if(this.OutputHelper.constructor){
-      helper = new (this.OutputHelper)();
-    }
-    helper.init(cmd, error);
-    return helper;
+  ClucChildProcess.prototype.createContext = function(){
+    return new (this.OutputHelper)();
   };
   ClucChildProcess.prototype.run = function(clucLine,then){
     clucLine.run(this, then);
@@ -266,53 +281,64 @@ Cluc.transports = {
   process:ClucChildProcess
 };
 
-var ClucOutputHelper = (function(){
-  var ClucOutputHelper = function(){
+var ClucContext = (function(){
+  var ClucContext = function(){
     this.init();
   };
-  ClucOutputHelper.prototype.init = function(cmd, error){
+  ClucContext.prototype.init = function(cmd){
+    if(!this.hasRunOnce){
+      this.canDo = 1;
+      this.hasRunOnce = false;
+    }
     this.cmd = cmd  || null;
-    this.error = error || null;
     this.rules = [];
+    this.failedRules = [];
   };
 
-  ClucOutputHelper.prototype.pushRule = function(Rule, search, userMsg ){
+  ClucContext.prototype.pushRule = function(Rule, search, userMsg ){
     var rule = new Rule();
     rule.init(search, userMsg);
     this.rules.push(rule);
     return rule;
   };
-  ClucOutputHelper.prototype.must = function(search, error){
+  ClucContext.prototype.must = function(search, error){
     return this.pushRule(ClucMust, search, error);
   };
-  ClucOutputHelper.prototype.success = function(search, success ){
+  ClucContext.prototype.success = function(search, success ){
     return this.pushRule(ClucSuccess, search, success);
   };
-  ClucOutputHelper.prototype.confirm = function(search, confirm ){
+  ClucContext.prototype.confirm = function(search, confirm ){
     return this.pushRule(ClucConfirm, search, confirm);
   };
-  ClucOutputHelper.prototype.mustnot = function(search, error ){
+  ClucContext.prototype.mustnot = function(search, error ){
     return this.pushRule(ClucMustNot, search, error);
   };
-  ClucOutputHelper.prototype.warn = function(search, warn ){
+  ClucContext.prototype.warn = function(search, warn ){
     return this.pushRule(ClucWarn, search, warn);
   };
 
-  ClucOutputHelper.prototype.watch = function(search, confirm ){
+  ClucContext.prototype.watch = function(search, confirm ){
     return this.pushRule(ClucWatch, search, confirm);
   };
-  ClucOutputHelper.prototype.answer = function(q, a){
+  ClucContext.prototype.answer = function(q, a){
     return this.pushRule(ClucAnswer, q, a);
   };
-  ClucOutputHelper.prototype.display = function(){
+  ClucContext.prototype.display = function(){
     return this.pushRule(ClucDisplay, /.*/g);
+  };
+  ClucContext.prototype.redo = function(max){
+    if(!this.hasRunOnce){
+      this.canDo = max;
+    }
+    return this;
   };
 
 
 
-  ClucOutputHelper.prototype.executeRules = function(stdout, stderr, stdin){
+  ClucContext.prototype.executeRules = function(error, stdout, stderr, stdin){
     this.stdin = stdin;
     var rules = this.rules;
+    var failedRules = this.failedRules;
 
     rules.forEach(function(rule){
       rule.stdin = stdin;
@@ -324,7 +350,7 @@ var ClucOutputHelper = (function(){
       });
       rules.forEach(function(rule){
         rule.close();
-        rule.close();
+        if(rule.hasFailed()&&rule.canRedo()) failedRules.push(rule);
       });
     } else if(stdout){
       stdout.on('data' , function(d){
@@ -341,30 +367,55 @@ var ClucOutputHelper = (function(){
       stdout.on('close' , function(){
         rules.forEach(function(rule){
           rule.close();
+          if(rule.hasFailed()) failedRules.push(rule);
         });
       });
+
+      this.cmd.fn.call(this, error, stdout, stderr);
     }else{
       log.warn('something is wrong stdout is null')
     }
+    this.hasRunOnce = true;
+    this.canDo--;
+
+    return this.hasFailed();
   };
 
+  ClucContext.prototype.canRedo = function(){
+    return this.canDo>0;
+  };
 
+  ClucContext.prototype.hasFailed = function(){
+    return this.failedRules.length>0;
+  };
 
-  return ClucOutputHelper;
+  ClucContext.prototype.getFailureMessages = function(){
+    var failures = [];
+    this.failedRules.forEach(function(rule){
+      failures.push(rule.forgeErrorMessage());
+    });
+    return failures;
+  };
+
+  ClucContext.prototype.getOrFn = function(){
+    var orFn = null;
+    this.failedRules.forEach(function(rule){
+      if(!orFn && rule.orFn) orFn = rule.orFn;
+    });
+    return orFn;
+  };
+
+  return ClucContext;
 })();
 
-var ClucSshOutputHelper = (function(){
-  var ClucSshOutputHelper = function(){};
-
-  util.inherits(ClucSshOutputHelper, ClucOutputHelper);
-
-  ClucSshOutputHelper.prototype.init = function(cmd, error, server){
-    this.cmd = cmd || null;
-    this.error = error || null;
+var ClucSSHContext = (function(){
+  var ClucSSHContext = function(server){
     this.server = server || null;
   };
 
-  ClucSshOutputHelper.prototype.is = function(search ){
+  util.inherits(ClucSSHContext, ClucContext);
+
+  ClucSSHContext.prototype.is = function(search ){
     return this.server &&
       (
       (!!this.server.hostname.match(search))
@@ -376,18 +427,20 @@ var ClucSshOutputHelper = (function(){
       ;
   };
 
-  return ClucSshOutputHelper;
+  return ClucSSHContext;
 })();
 
 Cluc.output = {
-  ssh:ClucSshOutputHelper,
-  process:ClucOutputHelper
+  ssh:ClucSSHContext,
+  process:ClucContext
 };
 
 var ClucRule = (function(){
   var ClucRule = function(){};
 
   ClucRule.prototype.init = function(search, userDefinedMessage){
+    this.failed = false;
+    this.orFn = null;
     this.matched = null;
     this.capturedData = null;
     this.hasMatchedOnce = false;
@@ -435,6 +488,14 @@ var ClucRule = (function(){
     }
   };
 
+  ClucRule.prototype.hasFailed = function(){
+    return this.failed;
+  };
+
+  ClucRule.prototype.or = function(fn){
+    this.orFn = fn;
+  };
+
   return ClucRule;
 })();
 
@@ -443,6 +504,7 @@ var ClucMust = (function(){
   util.inherits(ClucMust, ClucRule);
   ClucMust.prototype.onClose = function(matched){
     if(!matched){
+      this.failed = true;
       log.warn(' '+symbols.err+' ', '\n'+' '+(this.forgeErrorMessage() )+'\n' );
     }
   };
@@ -453,7 +515,11 @@ var ClucSuccess = (function(){
   var ClucSuccess = function(){};
   util.inherits(ClucSuccess, ClucRule);
   ClucSuccess.prototype.onceMatch = function(){
+    this.failed = true;
     log.success(' '+symbols.ok+' ', '\n'+(this.forgeErrorMessage() )+'\n' );
+  };
+  ClucSuccess.prototype.hasFailed = function(){
+    return !this.failed;
   };
   return ClucSuccess;
 })();
@@ -463,15 +529,8 @@ var ClucMustNot = (function(){
   util.inherits(ClucMustNot, ClucRule);
   ClucMustNot.prototype.onMatch = function(matched){
     if(matched){
+      this.failed = true;
       log.error(' '+symbols.err+' ', '\n'+(this.forgeErrorMessage() )+'\n' );
-    }
-  };
-  ClucMustNot.prototype.or = function(fn){
-    this.orFn = fn;
-  };
-  ClucMustNot.prototype.onClose = function(){
-    if(this.orFn && this.matched){
-      this.orFn(this);
     }
   };
   return ClucMustNot;
@@ -481,7 +540,11 @@ var ClucConfirm = (function(){
   var ClucConfirm = function(){};
   util.inherits(ClucConfirm, ClucRule);
   ClucConfirm.prototype.onceMatch = function(){
+    this.failed = true;
     log.confirm('   ', this.forgeErrorMessage());
+  };
+  ClucConfirm.prototype.hasFailed = function(){
+    return !this.failed;
   };
   return ClucConfirm;
 })();
@@ -490,6 +553,7 @@ var ClucWarn = (function(){
   var ClucWarn = function(){};
   util.inherits(ClucWarn, ClucRule);
   ClucWarn.prototype.onceMatch = function(){
+    this.failed = true;
     log.warn('   ', this.forgeErrorMessage());
   };
   return ClucWarn;

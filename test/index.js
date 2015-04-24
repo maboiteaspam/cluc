@@ -71,6 +71,7 @@ describe('cluc', function(){
         this.success(/12\.0/, 'It s the latest !');
         this.mustnot(/12\.0/, 'It should not be v0.12.0.').or(clucLine.die());
         this.display();
+        this.redo(2);
       })
       .stream('echo "should not appear"' , function(err,stdout,stderr){
         if(err) log.error(err);
@@ -128,5 +129,6 @@ describe('cluc', function(){
       done();
     });
   });
+
 });
 

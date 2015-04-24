@@ -52,41 +52,67 @@ with ssh
 
 * [`Cluc`](doc/Cluc.md#Cluc)
     * [`Cluc.stream`](doc/Cluc.md#Cluc.stream)
+    * [`Cluc.tail`](doc/Cluc.md#Cluc.tail)
     * [`Cluc.exec`](doc/Cluc.md#Cluc.#exec)
     * [`Cluc.run`](doc/Cluc.md#Cluc.#run)
-
-
-
-* [`Cluc.transports.process`](doc/ClucChildProcess.md)
-    * [`ClucChildProcess`](doc/ClucChildProcess.md#ClucSsh)
-        * [`ClucChildProcess.exec`](doc/ClucChildProcess.md#ClucSsh.exec)
-        * [`ClucChildProcess.stream`](doc/ClucChildProcess.md#ClucSsh.stream)
-        * [`ClucChildProcess.run`](doc/ClucChildProcess.md#ClucSsh.run)
+    * [`Cluc.wait`](doc/Cluc.md#Cluc.#wait)
+    * [`Cluc.concat`](doc/Cluc.md#Cluc.#concat)
+    * [`Cluc.die`](doc/Cluc.md#Cluc.#die)
         
-* [`Cluc.output.process`](doc/ClucOutputHelper.md)
-    * [`ClucOutputHelper`](doc/ClucOutputHelper.md#ClucOutputHelper)
-        * [`ClucOutputHelper.init`](doc/ClucOutputHelper.md#ClucOutputHelper.init)
-        * [`ClucOutputHelper.confirm`](doc/ClucOutputHelper.md#ClucOutputHelper.confirm)
-        * [`ClucOutputHelper.mustnot`](doc/ClucOutputHelper.md#ClucOutputHelper.mustnot)
-        * [`ClucOutputHelper.warn`](doc/ClucOutputHelper.md#ClucOutputHelper.warn)
-        * [`ClucOutputHelper.clean`](doc/ClucOutputHelper.md#ClucOutputHelper.clean)
+    * [`Cluc.transports.process`](doc/ClucChildProcess.md)
+    * [`Cluc.transports.ssh`](doc/ClucSsh.md#ClucSsh)
+    
+    * [`Cluc.output.process`](doc/ClucContext.md)
+    * [`Cluc.output.ssh`](doc/ClucSSHContext.md)
+    
+    * [`Cluc.rules.must`](doc/ClucRule.md#ClucMust)
+    * [`Cluc.rules.success`](doc/ClucRule.md#ClucSuccess)
+    * [`Cluc.rules.mustnot`](doc/ClucRule.md#ClucMustNot)
+    * [`Cluc.rules.confirm`](doc/ClucRule.md#ClucConfirm)
+    * [`Cluc.rules.warn`](doc/ClucRule.md#ClucWarn)
+    * [`Cluc.rules.watch`](doc/ClucRule.md#ClucWatch)
+    * [`Cluc.rules.answer`](doc/ClucRule.md#ClucAnswer)
+    * [`Cluc.rules.display`](doc/ClucRule.md#ClucDisplay)
 
 
+* [`ClucChildProcess`](doc/ClucChildProcess.md#ClucSsh)
+    * [`ClucChildProcess.exec`](doc/ClucChildProcess.md#ClucSsh.exec)
+    * [`ClucChildProcess.stream`](doc/ClucChildProcess.md#ClucSsh.stream)
+    * [`ClucChildProcess.run`](doc/ClucChildProcess.md#ClucSsh.run)
+    * [`ClucChildProcess.createContext`](doc/ClucChildProcess.md#ClucSsh.createContext)
 
-* [`Cluc.transports.ssh`](doc/ClucSsh.md#ClucSsh)
-    * [`ClucSsh`](doc/ClucSsh.md#ClucSsh)
-        * [`ClucSsh.exec`](doc/ClucSsh.md#ClucSsh.exec)
-        * [`ClucSsh.stream`](doc/ClucSsh.md#ClucSsh.stream)
-        * [`ClucSsh.run`](doc/ClucSsh.md#ClucSsh.run)
+* [`ClucContext`](doc/ClucContext.md#ClucContext)
+    * [`ClucContext.init`](doc/ClucContext.md#ClucContext.init)
+    * [`ClucContext.pushRule`](doc/ClucContext.md#ClucContext.pushRule)
+    * [`ClucContext.must`](doc/ClucContext.md#ClucContext.must)
+    * [`ClucContext.success`](doc/ClucContext.md#ClucContext.success)
+    * [`ClucContext.confirm`](doc/ClucContext.md#ClucContext.confirm)
+    * [`ClucContext.mustnot`](doc/ClucContext.md#ClucContext.mustnot)
+    * [`ClucContext.warn`](doc/ClucContext.md#ClucContext.warn)
+    * [`ClucContext.watch`](doc/ClucContext.md#ClucContext.watch)
+    * [`ClucContext.answer`](doc/ClucContext.md#ClucContext.answer)
+    * [`ClucContext.display`](doc/ClucContext.md#ClucContext.display)
+    * [`ClucContext.redo`](doc/ClucContext.md#ClucContext.redo)
+
+* [`ClucSsh`](doc/ClucSsh.md#ClucSsh)
+    * [`ClucSsh.exec`](doc/ClucSsh.md#ClucSsh.exec)
+    * [`ClucSsh.stream`](doc/ClucSsh.md#ClucSsh.stream)
+    * [`ClucSsh.run`](doc/ClucSsh.md#ClucSsh.run)
+    * [`ClucSsh.createContext`](doc/ClucSsh.md#ClucSsh.createContext)
         
-* [`Cluc.output.ssh`](doc/ClucSshOutputHelper.md)
-    * [`ClucSshOutputHelper`](doc/ClucSshOutputHelper.md#ClucSshOutputHelper)
-        * [`ClucSshOutputHelper.init`](doc/ClucSshOutputHelper.md#ClucSshOutputHelper.init)
-        * [`ClucSshOutputHelper.is`](doc/ClucSshOutputHelper.md#ClucSshOutputHelper.is)
-        * [`ClucSshOutputHelper.confirm`](doc/ClucSshOutputHelper.md#ClucSshOutputHelper.confirm)
-        * [`ClucSshOutputHelper.must`](doc/ClucSshOutputHelper.md#ClucSshOutputHelper.must)
-        * [`ClucSshOutputHelper.mustnot`](doc/ClucSshOutputHelper.md#ClucSshOutputHelper.mustnot)
-        * [`ClucSshOutputHelper.warn`](doc/ClucSshOutputHelper.md#ClucSshOutputHelper.warn)
+* [`ClucSSHContext`](doc/ClucSSHContext.md#ClucSSHContext)
+    * [`ClucSSHContext.init`](doc/ClucSSHContext.md#ClucSSHContext.init)
+    * [`ClucSSHContext.pushRule`](doc/ClucSSHContext.md#ClucSSHContext.pushRule)
+    * [`ClucSSHContext.is`](doc/ClucSSHContext.md#ClucSSHContext.is)
+    * [`ClucSSHContext.must`](doc/ClucSSHContext.md#ClucSSHContext.must)
+    * [`ClucSSHContext.success`](doc/ClucSSHContext.md#ClucSSHContext.success)
+    * [`ClucSSHContext.confirm`](doc/ClucSSHContext.md#ClucSSHContext.confirm)
+    * [`ClucSSHContext.mustnot`](doc/ClucSSHContext.md#ClucSSHContext.mustnot)
+    * [`ClucSSHContext.warn`](doc/ClucSSHContext.md#ClucSSHContext.warn)
+    * [`ClucSSHContext.watch`](doc/ClucSSHContext.md#ClucSSHContext.watch)
+    * [`ClucSSHContext.answer`](doc/ClucSSHContext.md#ClucSSHContext.answer)
+    * [`ClucSSHContext.display`](doc/ClucSSHContext.md#ClucSSHContext.display)
+    * [`ClucSSHContext.redo`](doc/ClucSSHContext.md#ClucSSHContext.redo)
 
 
 * [`ClucRule`](doc/ClucRule.md#ClucRule)
@@ -94,31 +120,31 @@ with ssh
     * [`ClucRule.forgeErrorMessage`](doc/ClucRule.md#ClucRule.forgeErrorMessage)
     * [`ClucRule.testData`](doc/ClucRule.md#ClucRule.testData)
     * [`ClucRule.close`](doc/ClucRule.md#ClucRule.close)
-
-* [`Cluc.rules.must`](doc/ClucRule.md#ClucMust)
+    * [`ClucRule.hasFailed`](doc/ClucRule.md#ClucRule.hasFailed)
+    * [`ClucRule.or`](doc/ClucRule.md#ClucRule.or)
+    
+* [`ClucMust`](doc/ClucRule.md#ClucMust)
     * [`ClucMust.onClose`](doc/ClucRule.md#ClucMust.onClose)
-
-* [`Cluc.rules.success`](doc/ClucRule.md#ClucSuccess)
+    
+* [`ClucSuccess`](doc/ClucRule.md#ClucSuccess)
     * [`ClucSuccess.onceMatch`](doc/ClucRule.md#ClucSuccess.onceMatch)
-
-* [`Cluc.rules.mustnot`](doc/ClucRule.md#ClucMustNot)
+    
+* [`ClucMustNot`](doc/ClucRule.md#ClucMustNot)
     * [`ClucMustNot.onMatch`](doc/ClucRule.md#ClucMustNot.onMatch)
-    * [`ClucMustNot.or`](doc/ClucRule.md#ClucMustNot.or)
-    * [`ClucMustNot.onClose`](doc/ClucRule.md#ClucMustNot.onClose)
-
-* [`Cluc.rules.confirm`](doc/ClucRule.md#ClucConfirm)
+    
+* [`ClucConfirm`](doc/ClucRule.md#ClucConfirm)
     * [`ClucConfirm.onceMatch`](doc/ClucRule.md#ClucConfirm.onceMatch)
-
-* [`Cluc.rules.warn`](doc/ClucRule.md#ClucWarn)
+    
+* [`ClucWarn`](doc/ClucRule.md#ClucWarn)
     * [`ClucWarn.onceMatch`](doc/ClucRule.md#ClucWarn.onceMatch)
-
-* [`Cluc.rules.watch`](doc/ClucRule.md#ClucWatch)
+    
+* [`ClucWatch`](doc/ClucRule.md#ClucWatch)
     * [`ClucWatch.onMatch`](doc/ClucRule.md#ClucWatch.onMatch)
-
-* [`Cluc.rules.answer`](doc/ClucRule.md#ClucAnswer)
+    
+* [`ClucAnswer`](doc/ClucRule.md#ClucAnswer)
     * [`ClucAnswer.onMatch`](doc/ClucRule.md#ClucAnswer.onMatch)
-
-* [`Cluc.rules.display`](doc/ClucRule.md#ClucDisplay)
+    
+* [`ClucDisplay`](doc/ClucRule.md#ClucDisplay)
     * [`ClucDisplay.onMatch`](doc/ClucRule.md#ClucDisplay.onMatch)
 
 
@@ -126,4 +152,7 @@ with ssh
 
 # Status
 
-In development. It needs some tests. It misses putFile and readDir implementations.
+In development. 
+It needs some tests. 
+It misses putFile and readDir implementations. 
+Documentation update.

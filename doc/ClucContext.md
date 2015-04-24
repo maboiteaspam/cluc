@@ -1,19 +1,20 @@
-# ClucSshOutputHelper API
+# ClucContext API
 
-* [`Cluc.output.ssh`]()
-    * [`ClucSshOutputHelper`](#ClucSsh)
-        * [`ClucSshOutputHelper.exec`](#exec)
-        * [`ClucSshOutputHelper.init`](#init)
-        * [`ClucSshOutputHelper.stream`](#stream)
-        * [`ClucSshOutputHelper.run`](#run)
+* [`Cluc.output.process`]()
+    * [`ClucContext`](#ClucSsh)
+        * [`ClucContext.init`](#init)
+        * [`ClucContext.exec`](#exec)
+        * [`ClucContext.stream`](#stream)
+        * [`ClucContext.run`](#run)
+        * [`ClucContext.answer`](#answer)
+        * [`ClucContext.display`](#display)
 
 ---------------------------------------
 
+<a name="ClucContext" />
+### new ClucContext()
 
-<a name="ClucSshOutputHelper" />
-### new ClucSshOutputHelper()
-
-ClucSshOutputHelper constructor.
+ClucContext constructor.
 
 __Arguments__
 
@@ -23,7 +24,7 @@ __Examples__
 ```js
     var Cluc = require('cluc');
     
-    (new Cluc(new Cluc.output.ssh() ) ).exec('ls -alh', function(err, stdout, stderr, conn){
+    (new Cluc(new Cluc.output.process() ) ).exec('ls -alh', function(err, stdout, stderr, conn){
         this.must(/some/, 'some is not shown');
     });
 ```
@@ -31,8 +32,8 @@ __Examples__
 ---------------------------------------
 
 
-<a name="ClucSshOutputHelper.init" />
-### ClucSshOutputHelper.init(error, stdout, stderr, stdin)
+<a name="ClucContext.init" />
+### ClucContext.init(error, stdout, stderr)
 
 Initialize members of this outputHelper.
 
@@ -41,7 +42,6 @@ __Arguments__
 * `error` - A text message.
 * `stdout` - A String or Stream of stdout.
 * `stderr` - A String or Stream of stderr.
-* `stdin` - A Stream of stdin.
 
 __Returns__
 
@@ -52,11 +52,7 @@ __Examples__
 ```js
     var Cluc = require('cluc');
     
-    var helper = new Cluc.output.ssh();
-    
-    // helper.init(server, error, new Stream(), new Stream(), new Stream());
-    
-    (new Cluc(helper ) ).exec('ls -alh', function(err, stdout, stderr, conn){
+    (new Cluc()).exec('ls -alh', function(err, stdout, stderr, conn){
         this.must(/some/, 'some is not shown');
     });
 ```
@@ -64,8 +60,8 @@ __Examples__
 ---------------------------------------
 
 
-<a name="ClucSshOutputHelper.must" />
-### ClucSshOutputHelper.must(search, error)
+<a name="ClucContext.must" />
+### ClucContext.must(search, error)
 
 Display error message, and throw an exception,
 if search does not match stdout or stderr.
@@ -83,9 +79,7 @@ __Examples__
 ```js
     var Cluc = require('cluc');
     
-    var clucLine = new Cluc(Cluc.output.ssh);
-    
-    clucLine.exec('ls -alh', function(err, stdout, stderr, conn){
+    (new Cluc()).exec('ls -alh', function(err, stdout, stderr, conn){
         this.must(/some/, 'some is not shown');
     });
 ```
@@ -93,8 +87,8 @@ __Examples__
 ---------------------------------------
 
 
-<a name="ClucSshOutputHelper.mustnot" />
-### ClucSshOutputHelper.mustnot(search, error)
+<a name="ClucContext.mustnot" />
+### ClucContext.mustnot(search, error)
 
 Display error message, and throw an exception,
 if search match stdout or stderr.
@@ -112,9 +106,7 @@ __Examples__
 ```js
     var Cluc = require('cluc');
     
-    var clucLine = new Cluc(Cluc.output.ssh);
-    
-    clucLine.exec('ls -alh', function(err, stdout, stderr, conn){
+    (new Cluc()).exec('ls -alh', function(err, stdout, stderr, conn){
         this.must(/some/, 'some is not shown');
     });
 ```
@@ -122,8 +114,8 @@ __Examples__
 ---------------------------------------
 
 
-<a name="ClucSshOutputHelper.confirm" />
-### ClucSshOutputHelper.confirm(search, confirmation)
+<a name="ClucContext.confirm" />
+### ClucContext.confirm(search, confirmation)
 
 Display confirmation message,
 if search match stdout or stderr.
@@ -141,9 +133,7 @@ __Examples__
 ```js
     var Cluc = require('cluc');
     
-    var clucLine = new Cluc(Cluc.output.ssh);
-    
-    clucLine.exec('ls -alh', function(err, stdout, stderr, conn){
+    (new Cluc()).exec('ls -alh', function(err, stdout, stderr, conn){
         this.confirm(/some/, 'some is shown');
     });
 ```
@@ -151,8 +141,8 @@ __Examples__
 ---------------------------------------
 
 
-<a name="ClucSshOutputHelper.warn" />
-### ClucSshOutputHelper.info(search, warn)
+<a name="ClucContext.warn" />
+### ClucContext.info(search, warn)
 
 Display info message,
 if search does not match stdout or stderr.
@@ -170,9 +160,7 @@ __Examples__
 ```js
     var Cluc = require('cluc');
     
-    var clucLine = new Cluc(Cluc.output.ssh);
-    
-    clucLine.exec('ls -alh', function(err, stdout, stderr, conn){
+    (new Cluc()).exec('ls -alh', function(err, stdout, stderr, conn){
         this.must(/some/, 'some is not shown');
     });
 ```
@@ -180,8 +168,8 @@ __Examples__
 ---------------------------------------
 
 
-<a name="ClucSshOutputHelper.warn" />
-### ClucSshOutputHelper.warn(search, warn)
+<a name="ClucContext.warn" />
+### ClucContext.warn(search, warn)
 
 Display warn message,
 if search does not match stdout or stderr.
@@ -199,9 +187,7 @@ __Examples__
 ```js
     var Cluc = require('cluc');
     
-    var clucLine = new Cluc(Cluc.output.ssh);
-    
-    clucLine.exec('ls -alh', function(err, stdout, stderr, conn){
+    (new Cluc()).exec('ls -alh', function(err, stdout, stderr, conn){
         this.must(/some/, 'some is not shown');
     });
 ```
@@ -209,8 +195,8 @@ __Examples__
 ---------------------------------------
 
 
-<a name="ClucSshOutputHelper.answer" />
-### ClucSshOutputHelper.answer(question, answer)
+<a name="ClucContext.answer" />
+### ClucContext.answer(question, answer)
 
 Detects a question and answers it.
 
@@ -219,7 +205,6 @@ __Arguments__
 * `question` - String or RegExp to match in stdout / stderr.
 * `answer` - A text message.
 
-
 __Returns__
 
 
@@ -227,9 +212,8 @@ __Examples__
 
 ```js
     var Cluc = require('cluc');
-
-    (new Cluc(Cluc.output.ssh))
-    .exec('ls -alh', function(err, stdout, stderr, conn){
+    
+    (new Cluc()).exec('ls -alh', function(err, stdout, stderr, conn){
         this.answer(/Would you like to continue \?/, 'yes');
     });
 ```
@@ -237,8 +221,8 @@ __Examples__
 ---------------------------------------
 
 
-<a name="ClucSshOutputHelper.display" />
-### ClucSshOutputHelper.display()
+<a name="ClucContext.display" />
+### ClucContext.display()
 
 Displays stdout and stderr to output.
 
@@ -252,9 +236,8 @@ __Examples__
 
 ```js
     var Cluc = require('cluc');
-
-    (new Cluc(Cluc.output.ssh))
-    .exec('ls -alh', function(err, stdout, stderr, conn){
+    
+    (new Cluc()).exec('ls -alh', function(err, stdout, stderr, conn){
         this.display();
     });
 ```
