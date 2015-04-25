@@ -130,5 +130,32 @@ describe('cluc', function(){
     });
   });
 
+  it('download', function(done){
+
+    var extras = require('../extras.js');
+    var Cluc = require('../index.js');
+    var server = servers.vagrant.ssh;
+
+    var clucLine = (new Cluc())
+      .stream('mkdir ~/test && touch test/test.bashrc', function(){
+        this.display();
+      })
+      .stream('mkdir -p ~/test/tomate && touch test/tomate/tomate.bashrc', function(){
+        this.display();
+      })
+      .stream('ls -alh ~', function(){
+        this.display();
+      })
+      .download('/home/vagrant/test', __dirname+'/fixtures/test.bashrc', function(err){
+        if(err) log.error(err);
+      });
+
+    var ClucSsh = Cluc.transports.ssh;
+    (new ClucSsh()).run(clucLine, server, function(err){
+      if(err) return done(err);
+      done();
+    });
+  });
+
 });
 
