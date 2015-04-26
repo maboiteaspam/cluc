@@ -11,18 +11,41 @@ with child_process
     var clucLine = (new Cluc())
       .exec('ls -alh' , function(err,stdout,stderr){
         this.confirm(/vagrant/, 'Username should display on unix.');
-        this.warn(/root/, 'Some files does not belong vagrant users.');
+        this.warn(/root/, 'Some files does not belong vagrant users.').or(function(err){
+            return new Error(err);
+          });
+          
       })
       .stream('ls -alh' , function(err,stdout,stderr){
         this.confirm(/vagrant/, 'Username should display on unix.');
         this.warn(/root/, 'Some files does not belong vagrant users.');
-        stdout.on('close',function(){ done(); });
+        
+      }).stream('sudo apt-get remove apache2 -y', function(){
+          this.progress(/Reading (:<title>[\w\s]+)[ .]*(:<current>\d+)%/);
+          this.mustnot(/0 to remove/, 'no package to remove found');
+          this.confirm(/([1-9]+) to remove/, ' found %s package to remove');
+          this.success(/(Removing [^ ]+\s+[.]+)/i, 'Package removed !');
+          this.warn(/(Unable to locate package )/i, 'Package not found');
+          
+      }).stream('sudo apt-get install apache2 -y', function(){
+          this.mustnot(/You should explicitly select one to install/, "too many results");
+          this.mustnot(/has no installation candidate/, "can not install httpd");
+          this.watch(/Need to get ([0-9- ,-]+ [a-z]+) of archives/i);
+          this.watch(/After this operation, ([0-9- ,-]+ [a-z]+) of additional disk space will be used/i);
+          this.spin(/((Reading|Building).+)/i);
+          this.spin(/^\s*([0-9]+%)/i);
+          this.warn(/(is already the newest version)/i, 'Already installed');
+          this.warn(/(0 newly installed)/i, 'Package not installed');
+          this.confirm(/([^ /]+)\.deb/i);
+          this.success(/(1 newly installed)/i, 'Package installed !');
+          //this.display();
+          
+        }).download('/home/vagrant/test', __dirname+'/fixtures/test.bashrc', function(err){
+        if(err) log.error(err);
       });
 
     var ClucProcess = Cluc.transports.process;
-    (new ClucProcess()).run(clucLine, function(err){
-      if(err) return done(err);
-    });
+    (new ClucProcess()).run(clucLine, done);
 ```
 
 
@@ -35,17 +58,15 @@ with ssh
       .exec('ls -alh' , function(err,stdout,stderr){
         this.confirm(/vagrant/, 'Username should display on unix.');
         this.warn(/root/, 'Some files does not belong vagrant users.');
+        this.display();
       })
       .stream('ls -alh' , function(err,stdout,stderr){
         this.confirm(/vagrant/, 'Username should display on unix.');
         this.warn(/root/, 'Some files does not belong vagrant users.');
-        stdout.on('close',function(){ done(); });
       });
     
     var ClucSsh = Cluc.transports.ssh;
-    (new ClucSsh()).run(clucLine, server, function(err){
-      if(err) return done(err);
-    });
+    (new ClucSsh()).run(clucLine, server, done);
 ```
 
 # API

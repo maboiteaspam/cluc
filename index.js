@@ -121,14 +121,22 @@ var Cluc = (function(){
               context.executeRules(error, stdout, stderr, stdin);
               if(stdout && execType=='stream')
                 stdout.on('close', function() {
-                  var orFn = context.getOrFn();
-                  if(context.hasFailed() && orFn ){
-                    if(context.canRedo()){
+                  if(context.hasFailed() ){
+                    var orFn = context.getOrRules();
+                    if(context.canRedo() ){
                       return _next( context );
-                    }else {
-                      var isDead = orFn(context.getFailureMessages());
-                      if(isDead instanceof Error ){
-                        return then( isDead );
+                    }else if(orFn.length) {
+                      var isDead = [];
+                      orFn.forEach(function(rule){
+                        var err = rule.orFn( rule.forgeErrorMessage() );
+                        if(err){
+                          isDead.push(err)
+                        }
+                      });
+                      if(isDead.length){
+                        var err = new Error(isDead);
+                        err.items = isDead;
+                        return then(err);
                       }
                     }
                   }
@@ -140,14 +148,22 @@ var Cluc = (function(){
           }else if(execType=='string'){
             transport.exec(cmdStr, function(error, stdout, stderr){
               context.executeRules(error, stdout, stderr);
-              var orFn = context.getOrFn();
-              if(context.hasFailed() && orFn ){
+              if(context.hasFailed() ){
+                var orFn = context.getOrRules();
                 if(context.canRedo()){
                   return _next( context );
-                }else {
-                  var isDead = orFn(context.getFailureMessages());
-                  if(isDead instanceof Error ){
-                    return then( isDead );
+                }else if(orFn.length) {
+                  var isDead = [];
+                  orFn.forEach(function(rule){
+                    var err = rule.orFn( rule.forgeErrorMessage() );
+                    if(err){
+                      isDead.push(err)
+                    }
+                  });
+                  if(isDead.length){
+                    var err = new Error(isDead);
+                    err.items = isDead;
+                    return then(err);
                   }
                 }
               }
@@ -275,7 +291,7 @@ var ClucSsh = (function(){
         if(err) throw err;
         that.conn = conn;
         that.server = server;
-        clucLine.run(that, function(){
+        clucLine.run(that, function(err){
           process.nextTick(function(){
             conn.end();
             that.conn = null;
@@ -379,6 +395,7 @@ var ClucContext = (function(){
       this.hasRunOnce = false;
     }
     this.cmd = cmd  || null;
+    this.stdin = null;
     this.rules = [];
     this.failedRules = [];
   };
@@ -430,20 +447,20 @@ var ClucContext = (function(){
 
 
   ClucContext.prototype.executeRules = function(error, stdout, stderr, stdin){
-    this.stdin = stdin;
     var rules = this.rules;
     var failedRules = this.failedRules;
-
-    try{
-      this.cmd.fn.call(this, error, stdout, stderr);
-    }catch(ex){
-      throw ex; // shall it be voided?
-    }
 
     rules.forEach(function(rule){
       rule.stdin = stdin;
     });
     if(_.isString(stdout)){
+
+      try{
+        this.cmd.fn.call(this, error, stdout, stderr);
+      }catch(ex){
+        throw ex; // shall it be voided?
+      }
+
       rules.forEach(function(rule){
 
         rule.testData(stdout);
@@ -470,8 +487,16 @@ var ClucContext = (function(){
         rules.forEach(function(rule){
           rule.close();
           if(rule.hasFailed()) failedRules.push(rule);
+          rule.stdin = null;
         });
       });
+
+      try{
+        this.cmd.fn.call(this, error, stdout, stderr);
+      }catch(ex){
+        throw ex; // shall it be voided?
+      }
+
     }else{
       log.warn('something is wrong stdout is null')
     }
@@ -489,18 +514,12 @@ var ClucContext = (function(){
     return this.failedRules.length>0;
   };
 
-  ClucContext.prototype.getFailureMessages = function(){
-    var failures = [];
+  ClucContext.prototype.getOrRules = function(){
+    var orFn = [];
     this.failedRules.forEach(function(rule){
-      failures.push(rule.forgeErrorMessage());
-    });
-    return failures;
-  };
-
-  ClucContext.prototype.getOrFn = function(){
-    var orFn = null;
-    this.failedRules.forEach(function(rule){
-      if(!orFn && rule.orFn) orFn = rule.orFn;
+      if(rule.orFn){
+        orFn.push(rule);
+      }
     });
     return orFn;
   };
@@ -551,7 +570,7 @@ var ClucRule = (function(){
   ClucRule.prototype.forgeErrorMessage = function(){
     if(_.isString(this.userDefinedMessage) ){
       if(this.search instanceof RegExp ){
-        var captures = this.matched.captures;
+        var captures = this.matched ? this.matched.captures : {};
         if(Object.keys(captures).length){
           var userMsg = this.userDefinedMessage;
           Object.keys(captures).forEach(function(name){
@@ -570,9 +589,11 @@ var ClucRule = (function(){
     if(_.isString(this.search) ){
       return this.matched;
     }
-    if(this.search instanceof RegExp ){
-      return this.matched[1] || this.search;
+    if(this.search instanceof RegExp && this.matched){
+      return this.matched[1] ||
+        _s.trim(this.matched.input);
     }
+    return this.search;
   };
 
   ClucRule.prototype.testData = function(data){
@@ -754,13 +775,13 @@ var ClucDisplay = (function(){
   var ClucDisplay = function(){};
   util.inherits(ClucDisplay, ClucRule);
   ClucDisplay.prototype.onData = function(){
-    var data = this.capturedData===null?'no data':this.capturedData;
-    log.watch('   ', data.replace(/(\n)$/, '') );
+    var data = this.capturedData===null?'no data\n':this.capturedData;
+    process.stdout.write(data)
   };
   ClucDisplay.prototype.onClose = function(){
     if(!this.search){
       var data = this.capturedData===null?'no data':this.capturedData;
-      log.watch('   ', data.replace(/(\n)$/, '') );
+      process.stdout.write(data)
     }
   };
   return ClucDisplay;

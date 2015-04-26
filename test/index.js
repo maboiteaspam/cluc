@@ -130,6 +130,7 @@ describe('cluc', function(){
     });
   });
 
+
   it('download', function(done){
 
     var extras = require('../extras.js');
@@ -148,6 +149,31 @@ describe('cluc', function(){
       })
       .download('/home/vagrant/test', __dirname+'/fixtures/test.bashrc', function(err){
         if(err) log.error(err);
+      });
+
+    var ClucSsh = Cluc.transports.ssh;
+    (new ClucSsh()).run(clucLine, server, function(err){
+      if(err) return done(err);
+      done();
+    });
+  });
+
+
+  it('error', function(done){
+
+    var extras = require('../extras.js');
+    var Cluc = require('../index.js');
+    var server = servers.vagrant.ssh;
+
+    var clucLine = (new Cluc())
+      .stream('mkdir ~/test', function(){
+        this.warn(/cannot create directory.+/).or(function(err){
+          return new Error(err.toString());
+        });
+        this.warn(/File exists/).or(function(){
+          // void
+        });
+        this.redo(2);
       });
 
     var ClucSsh = Cluc.transports.ssh;
