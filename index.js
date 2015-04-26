@@ -741,8 +741,9 @@ var ClucSpin = (function(){
       if(!this.spinner){
         this.spinner = new Spinner(this.userDefinedMessage || '%s');
         this.spinner.setSpinnerString('|/-\\');
-        this.spinner.start();
       }
+      this.spinner.stop();
+      this.spinner.start();
     }
     if(!matched){
       if(this.spinner){
