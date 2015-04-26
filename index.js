@@ -14,6 +14,8 @@ var _s = require('underscore.string');
 var symbols = require('symbolsjs');
 var Spinner = require('cli-spinner').Spinner;
 var ProgressBar = require('progress');
+var through = require('through');
+var byline = require('byline');
 var named = require('named-regexp').named;
 
 var Cluc = (function(){
@@ -21,6 +23,7 @@ var Cluc = (function(){
     this.cmds = [];
     this.isRunning = false;
     this.OutputHelper = OutputHelper || Cluc.output.process;
+    this.recordStream = through();
   };
   Cluc.prototype.stream = function(cmd,fn){
     if(this.isRunning) this.cmds.unshift({cmd:cmd, fn:fn, t:'stream',s:null});
@@ -88,6 +91,13 @@ var Cluc = (function(){
   Cluc.prototype.run = function(transport, then){
     var that = this;
     var cmds = that.cmds;
+    var recordStream = that.recordStream;
+
+    var then_ = then;
+    then = function(){
+      recordStream.end();
+      then_.apply(null,arguments);
+    };
 
     if(!this.isRunning && this.cmds.length){
 
@@ -111,42 +121,56 @@ var Cluc = (function(){
         var cmdStr = cmd.cmd;
 
         log.cmd('', cmdStr);
+        recordStream.write('\n$> '+cmdStr+'\n');
 
         if(context){
 
           var execType = cmd.t;
 
           if(execType.match(/(stream|tail)/)){
-            transport.stream(cmdStr, function(error, stderr, stdout,stdin){
+            transport.stream(cmdStr, function(error, stderr, stdout, stdin){
+
               context.executeRules(error, stdout, stderr, stdin);
+
               if(stdout && execType=='stream')
                 stdout.on('close', function() {
-                  if(context.hasFailed() ){
-                    var orFn = context.getOrRules();
-                    if(context.canRedo() ){
-                      return _next( context );
-                    }else if(orFn.length) {
-                      var isDead = [];
-                      orFn.forEach(function(rule){
-                        var err = rule.orFn( rule.forgeErrorMessage() );
-                        if(err){
-                          isDead.push(err)
+                  process.nextTick(function(){
+                    if(context.hasFailed() ){
+                      var orFn = context.getOrRules();
+                      if(context.canRedo() ){
+                        return _next( context );
+                      }else if(orFn.length) {
+                        var isDead = [];
+                        orFn.forEach(function(rule){
+                          var err = rule.orFn( rule.forgeErrorMessage() );
+                          if(err){
+                            isDead.push(err)
+                          }
+                        });
+                        if(isDead.length){
+                          return then(isDead.pop());
                         }
-                      });
-                      if(isDead.length){
-                        var err = new Error(isDead);
-                        err.items = isDead;
-                        return then(err);
                       }
                     }
-                  }
-                  _next();
+                    _next();
+                  });
                 });
+
               if(!stdout || execType=='tail') _next();
+
+              byline(stdout).on('data', function(d) {
+                recordStream.write(d+'\n');
+              });
+              byline(stderr).on('data', function(d) {
+                recordStream.write(d+'\n');
+              });
+
             });
 
           }else if(execType=='string'){
             transport.exec(cmdStr, function(error, stdout, stderr){
+              recordStream.write(stdout);
+              recordStream.write(stderr);
               context.executeRules(error, stdout, stderr);
               if(context.hasFailed() ){
                 var orFn = context.getOrRules();
@@ -161,9 +185,7 @@ var Cluc = (function(){
                     }
                   });
                   if(isDead.length){
-                    var err = new Error(isDead);
-                    err.items = isDead;
-                    return then(err);
+                    return then(isDead.pop());
                   }
                 }
               }
@@ -235,6 +257,10 @@ var Cluc = (function(){
       err.message = errorMsg;
       return err;
     }
+  };
+  Cluc.prototype.record = function(writeStream){
+    this.recordStream = writeStream;
+    return this;
   };
   return Cluc;
 })();
@@ -472,23 +498,25 @@ var ClucContext = (function(){
         if(rule.hasFailed()) failedRules.push(rule);
       });
     } else if(stdout){
-      stdout.on('data' , function(d){
+      byline(stdout).on('data' , function(d){
         rules.forEach(function(rule){
           rule.testData((''+d));
         });
       });
-      stderr.on('data' , function(d){
+      byline(stderr).on('data' , function(d){
         rules.forEach(function(rule){
           rule.testData((''+d));
         });
       });
 
       stdout.on('close' , function(){
-        rules.forEach(function(rule){
-          rule.close();
-          if(rule.hasFailed()) failedRules.push(rule);
-          rule.stdin = null;
-        });
+        process.nextTick(function(){
+          rules.forEach(function(rule){
+            rule.close();
+            if(rule.hasFailed()) failedRules.push(rule);
+            rule.stdin = null;
+          });
+        })
       });
 
       try{
@@ -776,12 +804,12 @@ var ClucDisplay = (function(){
   util.inherits(ClucDisplay, ClucRule);
   ClucDisplay.prototype.onData = function(){
     var data = this.capturedData===null?'no data\n':this.capturedData;
-    process.stdout.write(data)
+    log.watch('   ', data );
   };
   ClucDisplay.prototype.onClose = function(){
     if(!this.search){
       var data = this.capturedData===null?'no data':this.capturedData;
-      process.stdout.write(data)
+      log.watch('   ', data );
     }
   };
   return ClucDisplay;

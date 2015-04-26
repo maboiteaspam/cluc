@@ -38,11 +38,13 @@ with child_process
           this.warn(/(0 newly installed)/i, 'Package not installed');
           this.confirm(/([^ /]+)\.deb/i);
           this.success(/(1 newly installed)/i, 'Package installed !');
+          //this.redo(2);
           //this.display();
           
         }).download('/home/vagrant/test', __dirname+'/fixtures/test.bashrc', function(err){
-        if(err) log.error(err);
-      });
+           if(err) log.error(err);
+           
+        }).record(require('fs').createWriteStream('some/output.log'));;
 
     var ClucProcess = Cluc.transports.process;
     (new ClucProcess()).run(clucLine, done);

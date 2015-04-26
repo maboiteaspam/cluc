@@ -111,6 +111,7 @@ describe('cluc', function(){
     });
   });
 
+
   it('extras', function(done){
 
     var extras = require('../extras.js');
@@ -122,6 +123,8 @@ describe('cluc', function(){
     extras.precise64.apache.uninstall.call(clucLine);
     extras.precise64.apache.install.call(clucLine);
     extras.precise64.apache.reload.call(clucLine);
+
+    clucLine.record(require('fs').createWriteStream(__dirname+'/fixtures/extras.log'));
 
     var ClucSsh = Cluc.transports.ssh;
     (new ClucSsh()).run(clucLine, server, function(err){
@@ -175,6 +178,32 @@ describe('cluc', function(){
         });
         this.redo(2);
       });
+
+    var ClucSsh = Cluc.transports.ssh;
+    (new ClucSsh()).run(clucLine, server, function(err){
+      if(err) return done(err);
+      done();
+    });
+  });
+
+
+
+  it('record', function(done){
+
+    var extras = require('../extras.js');
+    var Cluc = require('../index.js');
+    var server = servers.vagrant.ssh;
+
+    var clucLine = (new Cluc())
+      .stream('mkdir ~/test', function(){
+        this.warn(/cannot create directory.+/).or(function(err){
+          return new Error(err.toString());
+        });
+        this.warn(/File exists/).or(function(){
+          // void
+        });
+        this.redo(2);
+      }).record(require('fs').createWriteStream(__dirname+'/fixtures/some.log'));
 
     var ClucSsh = Cluc.transports.ssh;
     (new ClucSsh()).run(clucLine, server, function(err){
