@@ -14,9 +14,9 @@ module.exports = {
       uninstall: function(){
         return this.stream('sudo apt-get remove apache2 -y', function(){
           //this.display();
-          this.watch(/(Reading package lists.+)/i);
-          this.watch(/(Building dependency tree.+)/i);
-          this.watch(/(Reading state information.+)/i);
+          this.spin(/(Reading package lists.+)/i);
+          this.spin(/(Building dependency tree.+)/i);
+          this.spin(/(Reading state information.+)/i);
           this.mustnot(/0 to remove/, 'no package to remove found');
           this.confirm(/([1-9]+) to remove/, ' found %s package to remove');
           this.success(/(Removing [^ ]+\s+[.]+)/i, 'Package removed !');
@@ -29,10 +29,10 @@ module.exports = {
           this.mustnot(/has no installation candidate/, "can not install httpd");
           this.watch(/Need to get ([0-9- ,-]+ [a-z]+) of archives/i);
           this.watch(/After this operation, ([0-9- ,-]+ [a-z]+) of additional disk space will be used/i);
-          this.watch(/(Reading package lists.+)/i);
-          this.watch(/(Building dependency tree.+)/i);
-          this.watch(/(Reading state information.+)/i);
-          this.watch(/^\s*([0-9]+%)/i);
+          this.spin(/(Reading package lists.+)/i);
+          this.spin(/(Building dependency tree.+)/i);
+          this.spin(/(Reading state information.+)/i);
+          this.spin(/^\s*([0-9]+%)/i);
           this.warn(/(is already the newest version)/i, 'Already installed');
           this.warn(/(0 newly installed)/i, 'Package not installed');
           this.confirm(/([^ /]+)\.deb/i);
