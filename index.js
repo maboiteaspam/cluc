@@ -9,12 +9,12 @@ log.addLevel('cmd', 2003, { fg: 'white', bg: 'grey' }, '<CMD');
 log.addLevel('answer', 2003, { fg: 'white', bg: 'grey' }, '<ANS');
 
 var util = require('util');
-var pkg = require('./package.json');
 var _ = require('underscore');
 var _s = require('underscore.string');
 var symbols = require('symbolsjs');
 var Spinner = require('cli-spinner').Spinner;
-
+var ProgressBar = require('progress');
+var named = require('named-regexp').named;
 
 var Cluc = (function(){
   var Cluc = function(OutputHelper){
@@ -237,70 +237,35 @@ var ClucSsh = (function(){
   };
   ClucSsh.prototype.stream = function(cmdStr,then){
     var conn = this.conn;
-    try{
-      ssh.run( conn, cmdStr, function sshStream(err, stream, stderr){
-        then(err, stream, stderr, stream, conn);
-      });
-    }catch(e){
-      console.log(e)
-      then(e);
-    }
+    ssh.run( conn, cmdStr, function sshStream(err, stream, stderr){
+      then(err, stream, stderr, stream, conn);
+    });
   };
   ClucSsh.prototype.exec = function(cmdStr,then){
     var conn = this.conn;
-    try{
-      ssh.exec(conn, cmdStr, function sshExecute(err, stdout, stderr){
-        then(err, stdout, stderr, conn);
-      });
-    }catch(e){
-      console.log(e)
-      then(e);
-    }
+    ssh.exec(conn, cmdStr, function sshExecute(err, stdout, stderr){
+      then(err, stdout, stderr, conn);
+    });
   };
   ClucSsh.prototype.copy = function(fromPath,toPath,then){
     var conn = this.conn;
-    try{
-      ssh.putDir(conn, fromPath,toPath, then);
-    }catch(e){
-      console.log(e)
-      then(e);
-    }
+    ssh.putDir(conn, fromPath,toPath, then);
   };
   ClucSsh.prototype.emptyDir = function(path, then){
     var conn = this.conn;
-    try{
-      ssh.emptyDir(conn, path, then);
-    }catch(e){
-      console.log(e)
-      then(e);
-    }
+    ssh.emptyDir(conn, path, then);
   };
   ClucSsh.prototype.download = function(fromPath, toPath, then){
     var conn = this.conn;
-    try{
-      ssh.getDir(conn, fromPath, toPath, then);
-    }catch(e){
-      console.log(e)
-      then(e);
-    }
+    ssh.getDir(conn, fromPath, toPath, then);
   };
   ClucSsh.prototype.mkdir = function(path,then){
     var conn = this.conn;
-    try{
-      ssh.mkdir(conn, path, then);
-    }catch(e){
-      console.log(e)
-      then(e);
-    }
+    ssh.mkdir(conn, path, then);
   };
   ClucSsh.prototype.rmdir = function(path,then){
     var conn = this.conn;
-    try{
-      ssh.rmdir(conn, path, then);
-    }catch(e){
-      console.log(e)
-      then(e);
-    }
+    ssh.rmdir(conn, path, then);
   };
 
   ClucSsh.prototype.run = function(clucLine,server,then){
@@ -339,92 +304,59 @@ var ClucChildProcess = (function(){
     return new (this.OutputHelper)();
   };
   ClucChildProcess.prototype.stream = function(cmdStr,then){
-    try{
-      // - command line parser. Could not find how to re use node parser.
-      cmdStr = cmdStr.match(/^([^ ]+)(.+)/);
-      var prgm = cmdStr[1];
-      cmdStr = _s.trim(cmdStr[2]);
-      var args = [];
-      var isquote=false;
-      cmdStr.split(" ").forEach(function (part){
-        if(part.match(/^['"]/)){
-          args.push(part);
-          isquote = true;
-        }else if(part.match(/['"]$/) && !part.match(/\\['"]$/) ){
+    // - command line parser. Could not find how to re use node parser.
+    cmdStr = cmdStr.match(/^([^ ]+)(.+)/);
+    var prgm = cmdStr[1];
+    cmdStr = _s.trim(cmdStr[2]);
+    var args = [];
+    var isquote=false;
+    cmdStr.split(" ").forEach(function (part){
+      if(part.match(/^['"]/)){
+        args.push(part);
+        isquote = true;
+      }else if(part.match(/['"]$/) && !part.match(/\\['"]$/) ){
+        args[args.length-1] += ''+part+' ';
+        isquote = false;
+      }else{
+
+        if(isquote){
           args[args.length-1] += ''+part+' ';
-          isquote = false;
-        }else{
-
-          if(isquote){
-            args[args.length-1] += ''+part+' ';
-          } else{
-            args.push(part);
-          }
+        } else{
+          args.push(part);
         }
-      });
-      args.forEach(function(arg,i){
-        var m = arg.match(/^\s*["'](.+)["']\s*$/);
-        if( m ){
-          args[i] = m[1]
-        }
-      });
-      args[args.length-1] = _s.trim(args[args.length-1]);
-      // - command line parser. Could not find how to re use node parser.
+      }
+    });
+    args.forEach(function(arg,i){
+      var m = arg.match(/^\s*["'](.+)["']\s*$/);
+      if( m ){
+        args[i] = m[1]
+      }
+    });
+    args[args.length-1] = _s.trim(args[args.length-1]);
+    // - command line parser. Could not find how to re use node parser.
 
-      var c = child_process.spawn(prgm, args);
-      then(null, c.stderr,  c.stdout, c.stdin, c);
-    }catch(e){
-      then(e);
-    }
+    var c = child_process.spawn(prgm, args);
+    then(null, c.stderr,  c.stdout, c.stdin, c);
   };
   ClucChildProcess.prototype.exec = function(cmdStr,then){
-    try{
-      var c = child_process.exec(cmdStr, function(error, stdout, stderr){
-        then(error, stdout, stderr, c);
-      })
-    }catch(e){
-      then(e);
-    }
+    var c = child_process.exec(cmdStr, function(error, stdout, stderr){
+      then(error, stdout, stderr, c);
+    })
   };
   ClucChildProcess.prototype.copy = function(fromPath,toPath,then){
-    try{
-      fs.copy(fromPath,toPath,then);
-    }catch(e){
-      console.log(e)
-      then(e);
-    }
+    fs.copy(fromPath,toPath,then);
   };
   ClucChildProcess.prototype.download = function(fromPath,toPath,then){
-    try{
-      fs.copy(toPath,fromPath,then);
-    }catch(e){
-      console.log(e)
-      then(e);
-    }
+    fs.copy(toPath,fromPath,then);
   };
   ClucChildProcess.prototype.emptyDir = function(path,then){
-    try{
-      fs.emptyDir(path,then);
-    }catch(e){
-      console.log(e)
-      then(e);
-    }
+    fs.emptyDir(path,then);
   };
   ClucChildProcess.prototype.mkdir = function(path,then){
-    try{
-      fs.ensureDir(path,then);
-    }catch(e){
-      console.log(e)
-      then(e);
-    }
+    fs.ensureDir(path,then);
   };
   ClucChildProcess.prototype.rmdir = function(path,then){
-    try{
-      fs.remove(path,then);
-    }catch(e){
-      console.log(e)
-      then(e);
-    }
+    fs.remove(path,then);
   };
   ClucChildProcess.prototype.run = function(clucLine,then){
     clucLine.run(this, then);
@@ -451,39 +383,42 @@ var ClucContext = (function(){
     this.failedRules = [];
   };
 
-  ClucContext.prototype.pushRule = function(Rule, search, userMsg ){
+  ClucContext.prototype.pushRule = function(Rule, initArgs ){
     var rule = new Rule();
-    rule.init(search, userMsg);
+    rule.init.apply(rule, initArgs);
     this.rules.push(rule);
     return rule;
   };
   ClucContext.prototype.must = function(search, error){
-    return this.pushRule(ClucMust, search, error);
+    return this.pushRule(ClucMust, arguments);
   };
   ClucContext.prototype.success = function(search, success ){
-    return this.pushRule(ClucSuccess, search, success);
+    return this.pushRule(ClucSuccess, arguments);
   };
   ClucContext.prototype.confirm = function(search, confirm ){
-    return this.pushRule(ClucConfirm, search, confirm);
+    return this.pushRule(ClucConfirm, arguments);
   };
   ClucContext.prototype.mustnot = function(search, error ){
-    return this.pushRule(ClucMustNot, search, error);
+    return this.pushRule(ClucMustNot, arguments);
   };
   ClucContext.prototype.warn = function(search, warn ){
-    return this.pushRule(ClucWarn, search, warn);
+    return this.pushRule(ClucWarn, arguments);
   };
 
   ClucContext.prototype.watch = function(search, confirm ){
-    return this.pushRule(ClucWatch, search, confirm);
+    return this.pushRule(ClucWatch, arguments);
   };
   ClucContext.prototype.spin = function(search ){
-    return this.pushRule(ClucSpin, search);
+    return this.pushRule(ClucSpin, arguments);
+  };
+  ClucContext.prototype.progress = function(search ){
+    return this.pushRule(ClucProgress, arguments);
   };
   ClucContext.prototype.answer = function(q, a){
-    return this.pushRule(ClucAnswer, q, a);
+    return this.pushRule(ClucAnswer, arguments);
   };
   ClucContext.prototype.display = function(){
-    return this.pushRule(ClucDisplay, /.*/g);
+    return this.pushRule(ClucDisplay, [/.*/g]);
   };
   ClucContext.prototype.redo = function(max){
     if(!this.hasRunOnce){
@@ -499,17 +434,23 @@ var ClucContext = (function(){
     var rules = this.rules;
     var failedRules = this.failedRules;
 
-    this.cmd.fn.call(this, error, stdout, stderr);
+    try{
+      this.cmd.fn.call(this, error, stdout, stderr);
+    }catch(ex){
+      throw ex; // shall it be voided?
+    }
 
     rules.forEach(function(rule){
       rule.stdin = stdin;
     });
     if(_.isString(stdout)){
       rules.forEach(function(rule){
+
         rule.testData(stdout);
         rule.testData(stderr);
       });
       rules.forEach(function(rule){
+
         rule.close();
         if(rule.hasFailed()) failedRules.push(rule);
       });
@@ -603,16 +544,26 @@ var ClucRule = (function(){
     this.matched = null;
     this.capturedData = null;
     this.hasMatchedOnce = false;
-    this.search = search;
+    this.search = search instanceof RegExp ? named(search) : search;
     this.userDefinedMessage = userDefinedMessage;
   };
 
   ClucRule.prototype.forgeErrorMessage = function(){
     if(_.isString(this.userDefinedMessage) ){
       if(this.search instanceof RegExp ){
-        var m = [].concat(this.matched);
-        m.shift();
-        return _s.vsprintf(this.userDefinedMessage, m);
+        var captures = this.matched.captures;
+        if(Object.keys(captures).length){
+          var userMsg = this.userDefinedMessage;
+          Object.keys(captures).forEach(function(name){
+            var value = captures[name].pop();
+            userMsg = userMsg.replace(new RegExp(name,'g'), value);
+          });
+          return userMsg;
+        }else{
+          var printArgs = [].concat(this.matched);
+          printArgs.shift();
+          return _s.vsprintf(this.userDefinedMessage, printArgs);
+        }
       }
       return this.userDefinedMessage;
     }
@@ -625,16 +576,20 @@ var ClucRule = (function(){
   };
 
   ClucRule.prototype.testData = function(data){
-    this.capturedData = data;
-    this.matched = (''+data).match(this.search);
+    this.capturedData = ''+data;
+    if(this.search instanceof RegExp ){
+      this.matched = this.search.exec(this.capturedData);
+    }else{
+      this.matched = (this.capturedData).match(this.search);
+    }
     if(!this.hasMatchedOnce && !!this.matched === true){
       this.hasMatchedOnce = true;
       if(this.onceMatch){
         this.onceMatch();
       }
     }
-    if(this.onMatch){
-      this.onMatch(!!this.matched);
+    if(this.onData){
+      this.onData(!!this.matched);
     }
   };
 
@@ -686,7 +641,7 @@ var ClucSuccess = (function(){
 var ClucMustNot = (function(){
   var ClucMustNot = function(){};
   util.inherits(ClucMustNot, ClucRule);
-  ClucMustNot.prototype.onMatch = function(matched){
+  ClucMustNot.prototype.onData = function(matched){
     if(matched){
       this.failed = true;
       log.error(' '+symbols.err+' ', '\n'+(this.forgeErrorMessage() )+'\n' );
@@ -721,7 +676,7 @@ var ClucWarn = (function(){
 var ClucWatch = (function(){
   var ClucWatch = function(){};
   util.inherits(ClucWatch, ClucRule);
-  ClucWatch.prototype.onMatch = function(matched){
+  ClucWatch.prototype.onData = function(matched){
     if(matched){
       log.watch('   ', this.forgeErrorMessage() );
     }
@@ -730,10 +685,9 @@ var ClucWatch = (function(){
 })();
 
 var ClucSpin = (function(){
-  var ClucSpin = function(){
-  };
+  var ClucSpin = function(){};
   util.inherits(ClucSpin, ClucRule);
-  ClucSpin.prototype.onMatch = function(matched){
+  ClucSpin.prototype.onData = function(matched){
     if(matched){
       if(!this.spinner){
         this.spinner = new Spinner(this.userDefinedMessage || '%s');
@@ -755,10 +709,38 @@ var ClucSpin = (function(){
   return ClucSpin;
 })();
 
+var ClucProgress = (function(){
+  var ClucProgress = function(){};
+  util.inherits(ClucProgress, ClucRule);
+  ClucProgress.prototype.onData = function(matched){
+    if(matched){
+      var captures = this.matched.captures ||  {};
+      if(Object.keys(captures).length){
+        var current = (captures.current || []).pop() || 0;
+        var title = (captures.title || []).pop() || '';
+        var total = (captures.total || []).pop() || 100;
+        if(!this.bar){
+          this.bar = new ProgressBar(':title [:bar] :percent :etas ', {
+            complete: '=',
+            incomplete: ' ',
+            width: 20,
+            title: title,
+            total: total
+          });
+        }
+        this.bar.update( current/total,{
+          title:title
+        });
+      }
+    }
+  };
+  return ClucProgress;
+})();
+
 var ClucAnswer = (function(){
   var ClucAnswer = function(){};
   util.inherits(ClucAnswer, ClucRule);
-  ClucAnswer.prototype.onMatch = function(matched){
+  ClucAnswer.prototype.onData = function(matched){
     if(matched){
       log.answer('    ', this.forgeErrorMessage());
       this.stdin.write(this.userDefinedMessage);
@@ -771,7 +753,7 @@ var ClucAnswer = (function(){
 var ClucDisplay = (function(){
   var ClucDisplay = function(){};
   util.inherits(ClucDisplay, ClucRule);
-  ClucDisplay.prototype.onMatch = function(){
+  ClucDisplay.prototype.onData = function(){
     var data = this.capturedData===null?'no data':this.capturedData;
     log.watch('   ', data.replace(/(\n)$/, '') );
   };
@@ -792,6 +774,7 @@ Cluc.rule = {
   warn:ClucWarn,
   watch:ClucWatch,
   spin:ClucSpin,
+  progress:ClucProgress,
   answer:ClucAnswer,
   display:ClucDisplay
 };
