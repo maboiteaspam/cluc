@@ -13,6 +13,7 @@ var pkg = require('./package.json');
 var _ = require('underscore');
 var _s = require('underscore.string');
 var symbols = require('symbolsjs');
+var Spinner = require('cli-spinner').Spinner;
 
 
 var Cluc = (function(){
@@ -248,7 +249,6 @@ var ClucSsh = (function(){
   ClucSsh.prototype.exec = function(cmdStr,then){
     var conn = this.conn;
     try{
-      log.cmd(pkg.name, cmdStr);
       ssh.exec(conn, cmdStr, function sshExecute(err, stdout, stderr){
         then(err, stdout, stderr, conn);
       });
@@ -476,6 +476,9 @@ var ClucContext = (function(){
   ClucContext.prototype.watch = function(search, confirm ){
     return this.pushRule(ClucWatch, search, confirm);
   };
+  ClucContext.prototype.spin = function(search ){
+    return this.pushRule(ClucSpin, search);
+  };
   ClucContext.prototype.answer = function(q, a){
     return this.pushRule(ClucAnswer, q, a);
   };
@@ -496,6 +499,8 @@ var ClucContext = (function(){
     var rules = this.rules;
     var failedRules = this.failedRules;
 
+    this.cmd.fn.call(this, error, stdout, stderr);
+
     rules.forEach(function(rule){
       rule.stdin = stdin;
     });
@@ -506,7 +511,7 @@ var ClucContext = (function(){
       });
       rules.forEach(function(rule){
         rule.close();
-        if(rule.hasFailed()&&rule.canRedo()) failedRules.push(rule);
+        if(rule.hasFailed()) failedRules.push(rule);
       });
     } else if(stdout){
       stdout.on('data' , function(d){
@@ -526,8 +531,6 @@ var ClucContext = (function(){
           if(rule.hasFailed()) failedRules.push(rule);
         });
       });
-
-      this.cmd.fn.call(this, error, stdout, stderr);
     }else{
       log.warn('something is wrong stdout is null')
     }
@@ -726,6 +729,32 @@ var ClucWatch = (function(){
   return ClucWatch;
 })();
 
+var ClucSpin = (function(){
+  var ClucSpin = function(){
+  };
+  util.inherits(ClucSpin, ClucRule);
+  ClucSpin.prototype.onMatch = function(matched){
+    if(matched){
+      if(!this.spinner){
+        this.spinner = new Spinner(this.userDefinedMessage || '%s');
+        this.spinner.setSpinnerString('|/-\\');
+        this.spinner.start();
+      }
+    }
+    if(!matched){
+      if(this.spinner){
+        this.spinner.stop(true);
+      }
+    }
+  };
+  ClucSpin.prototype.onClose = function(){
+    if(this.spinner){
+      this.spinner.stop(true);
+    }
+  };
+  return ClucSpin;
+})();
+
 var ClucAnswer = (function(){
   var ClucAnswer = function(){};
   util.inherits(ClucAnswer, ClucRule);
@@ -746,6 +775,12 @@ var ClucDisplay = (function(){
     var data = this.capturedData===null?'no data':this.capturedData;
     log.watch('   ', data.replace(/(\n)$/, '') );
   };
+  ClucDisplay.prototype.onClose = function(){
+    if(!this.search){
+      var data = this.capturedData===null?'no data':this.capturedData;
+      log.watch('   ', data.replace(/(\n)$/, '') );
+    }
+  };
   return ClucDisplay;
 })();
 
@@ -756,6 +791,7 @@ Cluc.rule = {
   mustnot:ClucMustNot,
   warn:ClucWarn,
   watch:ClucWatch,
+  spin:ClucSpin,
   answer:ClucAnswer,
   display:ClucDisplay
 };
