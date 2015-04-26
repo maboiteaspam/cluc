@@ -12,11 +12,10 @@ module.exports = {
         });
       },
       uninstall: function(){
-        return this.stream('sudo apt-get remove apache2 -y', function(){
+        return this.stream('sudo apt-get clean', function(){
           //this.display();
-          this.spin(/(Reading package lists.+)/i);
-          this.spin(/(Building dependency tree.+)/i);
-          this.spin(/(Reading state information.+)/i);
+        }).stream('sudo apt-get remove apache2 -y', function(){
+          this.progress(/Reading (:<title>[\w\s]+)[ .]*(:<current>\d+)%/);
           this.mustnot(/0 to remove/, 'no package to remove found');
           this.confirm(/([1-9]+) to remove/, ' found %s package to remove');
           this.success(/(Removing [^ ]+\s+[.]+)/i, 'Package removed !');
