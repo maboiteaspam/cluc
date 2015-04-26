@@ -139,7 +139,7 @@ with ssh
 
     
 #### [`ClucMustNot`](doc/ClucRule.md#ClucMustNot)
-* [`ClucMustNot.onMatch`](doc/ClucRule.md#ClucMustNot.onMatch)
+* [`ClucMustNot.onData`](doc/ClucRule.md#ClucMustNot.onData)
 
     
 #### [`ClucConfirm`](doc/ClucRule.md#ClucConfirm)
@@ -151,15 +151,15 @@ with ssh
 
     
 #### [`ClucWatch`](doc/ClucRule.md#ClucWatch)
-* [`ClucWatch.onMatch`](doc/ClucRule.md#ClucWatch.onMatch)
+* [`ClucWatch.onData`](doc/ClucRule.md#ClucWatch.onData)
 
     
 #### [`ClucAnswer`](doc/ClucRule.md#ClucAnswer)
-* [`ClucAnswer.onMatch`](doc/ClucRule.md#ClucAnswer.onMatch)
+* [`ClucAnswer.onData`](doc/ClucRule.md#ClucAnswer.onData)
     
     
 #### [`ClucDisplay`](doc/ClucRule.md#ClucDisplay)
-* [`ClucDisplay.onMatch`](doc/ClucRule.md#ClucDisplay.onMatch)
+* [`ClucDisplay.onData`](doc/ClucRule.md#ClucDisplay.onData)
 
 
 ---------------------------------------
