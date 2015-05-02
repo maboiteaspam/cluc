@@ -8,8 +8,9 @@ log.addLevel('confirm', 2004, { fg: 'white', bg: 'blue' }, ' ok ');
 log.addLevel('cmd', 2003, { fg: 'white', bg: 'grey' }, '<CMD');
 log.addLevel('answer', 2003, { fg: 'white', bg: 'grey' }, '<ANS');
 
+var pkg = require('./package.json');
+var debug = require('debug')(pkg.name);
 var util = require('util');
-var cline = require('cline-parser');
 var _ = require('underscore');
 var _s = require('underscore.string');
 var symbols = require('symbolsjs');
@@ -271,7 +272,7 @@ var ssh = new SSH2Utils();
 var ClucSsh = (function(){
   var ClucSsh = function(OutputHelper){
     this.cmds = [];
-    this.conn = null;
+    this.shell = null;
     this.server = null;
     this.OutputHelper = OutputHelper || Cluc.output.process;
   };
@@ -279,56 +280,79 @@ var ClucSsh = (function(){
     return new (this.OutputHelper)(this.server);
   };
   ClucSsh.prototype.stream = function(cmdStr,then){
-    var conn = this.conn;
-    ssh.run( conn, cmdStr, function sshStream(err, stream, stderr){
-      then(err, stream, stderr, stream, conn);
+    var shell = this.shell;
+    ssh.run( shell, cmdStr, function sshStream(err, stream, stderr){
+      then(err, stream, stderr, stream, shell);
     });
   };
   ClucSsh.prototype.exec = function(cmdStr,then){
-    var conn = this.conn;
-    ssh.exec(conn, cmdStr, function sshExecute(err, stdout, stderr){
-      then(err, stdout, stderr, conn);
+    var shell = this.shell;
+    ssh.exec(shell, cmdStr, function sshExecute(err, stdout, stderr){
+      then(err, stdout, stderr, shell);
     });
   };
   ClucSsh.prototype.copy = function(fromPath,toPath,then){
-    var conn = this.conn;
-    ssh.putDir(conn, fromPath,toPath, then);
+    ssh.putDir(this.shell, fromPath,toPath, then);
   };
   ClucSsh.prototype.emptyDir = function(path, then){
-    var conn = this.conn;
-    ssh.emptyDir(conn, path, then);
+    ssh.emptyDir(this.shell, path, then);
   };
   ClucSsh.prototype.download = function(fromPath, toPath, then){
-    var conn = this.conn;
-    ssh.getDir(conn, fromPath, toPath, then);
+    ssh.getDir(this.shell, fromPath, toPath, then);
   };
   ClucSsh.prototype.mkdir = function(path,then){
-    var conn = this.conn;
-    ssh.mkdir(conn, path, then);
+    ssh.mkdir(this.shell, path, then);
   };
   ClucSsh.prototype.rmdir = function(path,then){
-    var conn = this.conn;
-    ssh.rmdir(conn, path, then);
+    ssh.rmdir(this.shell, path, then);
   };
 
-  ClucSsh.prototype.run = function(clucLine,server,then){
+  ClucSsh.prototype.run = function(clucLine, server, then){
     var that = this;
-    try{
-      ssh.getConnReady( server, function(err, conn){
-        if(err) throw err;
-        that.conn = conn;
-        that.server = server;
-        clucLine.run(that, function(err){
-          process.nextTick(function(){
-            conn.end();
-            that.conn = null;
-            that.server = null;
+    that.open(server, function(err){
+      if(err) throw err;
+      clucLine.run(that, function(err){
+        process.nextTick(function(){
+          that.close(function(){
             if(then) then(err);
-          })
+          });
         });
       });
-    }catch(e){
-      then(e);
+    });
+  };
+  ClucSsh.prototype.open = function(server, then){
+    var that = this;
+    if(!this.shell){
+      try{
+        ssh.getConnReady( server, function(err, shell){
+          if(err) throw err;
+
+          that.shell = shell;
+          that.server = server;
+
+          that.shell.on('close' , function(){
+            debug('shell closed');
+          });
+          if(then) then(null, that.shell);
+        });
+      }catch(e){
+        then(e);
+      }
+    }else{
+      if(then) then(null, that.shell);
+    }
+  };
+  ClucSsh.prototype.close = function(then){
+    var that = this;
+    if(that.shell){
+      setTimeout(function(){
+        that.shell.end();
+        that.shell = null;
+        that.server = null;
+        if(then) then();
+      }, 2000);
+    }else{
+      if(then) then();
     }
   };
   return ClucSsh;
@@ -340,39 +364,159 @@ var glob = require("glob");
 var async = require("async");
 var ClucChildProcess = (function(){
   var ClucChildProcess = function(OutputHelper){
+    this.shell = null;
     this.cmds = [];
     this.OutputHelper = OutputHelper || Cluc.output.process;
   };
   ClucChildProcess.prototype.createContext = function(){
     return new (this.OutputHelper)();
   };
-  ClucChildProcess.prototype.stream = function(cmdStr,then){
-    var parsed = cline(cmdStr);
-    var c = child_process.spawn(parsed.prg, parsed.args);
-    then(null, c.stderr,  c.stdout, c.stdin, c);
+  ClucChildProcess.prototype.stream = function(cmdStr, then){
+    var stdoutStream = through();
+    var stderrStream = through();
+    var procesStream = through();
+    then(null, stderrStream,
+      stdoutStream, this.shell.stdin, procesStream);
+
+    var t = '__cluc__'+(new Date()).getTime();
+    debug(cmdStr);
+    debug(t);
+    var that = this;
+    var testEnd = function(stream){
+      var listener = function(d){
+        debug(d+'');
+        var isEnd = (''+d).match(t);
+        if (isEnd){
+          d = (''+d).replace(t,'');
+        }
+        stream.write(d);
+        if (isEnd){
+
+          that.shell.stdout.removeListener('data', listener);
+          that.shell.stderr.removeListener('data', listener);
+
+          procesStream.emit('close');
+          stdoutStream.emit('close');
+          stderrStream.emit('close');
+
+          procesStream.removeAllListeners('close');
+          stdoutStream.removeAllListeners('close');
+          stderrStream.removeAllListeners('close');
+
+          stdoutStream.removeAllListeners('data');
+          stderrStream.removeAllListeners('data');
+
+        }
+      };
+      return listener;
+    };
+    this.shell.stdout.on('data', testEnd(stdoutStream));
+    this.shell.stderr.on('data', testEnd(stderrStream));
+    this.shell.stdin.write(cmdStr);
+    this.shell.stdin.write('\n');
+    this.shell.stdin.write('echo "'+t+'"');
+    this.shell.stdin.write('\n');
   };
-  ClucChildProcess.prototype.exec = function(cmdStr,then){
-    var c = child_process.exec(cmdStr, function(error, stdout, stderr){
-      then(error, stdout, stderr, c);
-    })
+  ClucChildProcess.prototype.exec = function(cmdStr, then){
+    var procesStream = through();
+    var t = '__cluc__'+(new Date()).getTime();
+    debug(cmdStr);
+    debug(t);
+    var that = this;
+    var stdout = '';
+    var stderr = '';
+    var finish = function(){
+      debug('finish')
+      then(null, stdout, stderr, procesStream);
+      that.shell.stdout.removeListener('data', saveStdout);
+      that.shell.stderr.removeListener('data', saveStderr);
+      procesStream.emit('close');
+      procesStream.removeAllListeners('close');
+    };
+    var saveStdout = function(d){
+      debug(''+d);
+      var isEnd = (''+d).match(t);
+      if (isEnd){
+        d = (''+d).replace(t,'');
+      }
+      stdout += d;
+      if (isEnd){
+        finish();
+      }
+    };
+    var saveStderr = function(d){
+      debug(''+d);
+      var isEnd = (''+d).match(t);
+      if (isEnd){
+        d = (''+d).replace(t,'');
+      }
+      stderr += d;
+      if (isEnd){
+        finish();
+      }
+    };
+    this.shell.stdout.on('data', saveStdout);
+    this.shell.stderr.on('data', saveStderr);
+    this.shell.stdin.write(cmdStr);
+    this.shell.stdin.write('\n');
+    this.shell.stdin.write('echo "'+t+'"');
+    this.shell.stdin.write('\n');
   };
-  ClucChildProcess.prototype.copy = function(fromPath,toPath,then){
+  ClucChildProcess.prototype.copy = function(fromPath, toPath, then){
     fs.copy(fromPath,toPath,then);
   };
-  ClucChildProcess.prototype.download = function(fromPath,toPath,then){
+  ClucChildProcess.prototype.download = function(fromPath, toPath, then){
     fs.copy(toPath,fromPath,then);
   };
-  ClucChildProcess.prototype.emptyDir = function(path,then){
+  ClucChildProcess.prototype.emptyDir = function(path, then){
     fs.emptyDir(path,then);
   };
-  ClucChildProcess.prototype.mkdir = function(path,then){
+  ClucChildProcess.prototype.mkdir = function(path, then){
     fs.ensureDir(path,then);
   };
-  ClucChildProcess.prototype.rmdir = function(path,then){
+  ClucChildProcess.prototype.rmdir = function(path, then){
     fs.remove(path,then);
   };
-  ClucChildProcess.prototype.run = function(clucLine,then){
-    clucLine.run(this, then);
+  ClucChildProcess.prototype.run = function(clucLine, then){
+    var that = this;
+    that.open(function(err){
+      if(err) throw err;
+      clucLine.run(that, function(err){
+        process.nextTick(function(){
+          that.close(function(){
+            if(then) then(err);
+          });
+        });
+      });
+    });
+  };
+  ClucChildProcess.prototype.open = function(then){
+    if(!this.shell){
+      if (/^win/.test(process.platform) ) {
+        this.shell = child_process.spawn('cmd', []);
+      } else{
+        this.shell = child_process.spawn('bash', []);
+      }
+      this.shell.stdout.setMaxListeners(25);
+      this.shell.stderr.setMaxListeners(25);
+      this.shell.stdout.on('close' , function(){
+        debug('stdout closed');
+      });
+      this.shell.stderr.on('close' , function(){
+        debug('stderr closed');
+      });
+      this.shell.on('close' , function(){
+        debug('shell closed');
+      });
+    }
+    if(then) then(null, this.shell);
+  };
+  ClucChildProcess.prototype.close = function(then){
+    if(this.shell){
+      this.shell.kill('SIGINT');
+      this.shell = null;
+    }
+    if(then)then();
   };
   return ClucChildProcess;
 })();
@@ -434,6 +578,9 @@ var ClucContext = (function(){
   ClucContext.prototype.display = function(){
     return this.pushRule(ClucDisplay, [/.*/g]);
   };
+  ClucContext.prototype.dieOnError = function(){
+    return this.pushRule(ClucDieOnError, [/.*/g]);
+  };
   ClucContext.prototype.redo = function(max){
     if(!this.hasRunOnce){
       this.canDo = max;
@@ -460,8 +607,8 @@ var ClucContext = (function(){
 
       rules.forEach(function(rule){
 
-        rule.testData(stdout);
-        rule.testData(stderr);
+        rule.testData(stdout, 'stdout');
+        rule.testData(stderr, 'stderr');
       });
       rules.forEach(function(rule){
 
@@ -471,12 +618,12 @@ var ClucContext = (function(){
     } else if(stdout){
       byline(stdout).on('data' , function(d){
         rules.forEach(function(rule){
-          rule.testData((''+d));
+          rule.testData((''+d), 'stdout');
         });
       });
       byline(stderr).on('data' , function(d){
         rules.forEach(function(rule){
-          rule.testData((''+d));
+          rule.testData((''+d), 'stderr');
         });
       });
 
@@ -595,7 +742,7 @@ var ClucRule = (function(){
     return this.search;
   };
 
-  ClucRule.prototype.testData = function(data){
+  ClucRule.prototype.testData = function(data, stdpipe){
     this.capturedData = ''+data;
     if(this.search instanceof RegExp ){
       this.matched = this.search.exec(this.capturedData);
@@ -605,11 +752,11 @@ var ClucRule = (function(){
     if(!this.hasMatchedOnce && !!this.matched === true){
       this.hasMatchedOnce = true;
       if(this.onceMatch){
-        this.onceMatch();
+        this.onceMatch(stdpipe);
       }
     }
     if(this.onData){
-      this.onData(!!this.matched);
+      this.onData(!!this.matched, stdpipe);
     }
   };
 
@@ -785,6 +932,24 @@ var ClucDisplay = (function(){
     }
   };
   return ClucDisplay;
+})();
+
+var ClucDieOnError = (function(){
+  var ClucDieOnError = function(){};
+  util.inherits(ClucDieOnError, ClucRule);
+  ClucDieOnError.prototype.onData = function(matched, stdpipe){
+    if(this.capturedData && stdpipe==='stderr'){
+      log.error('   ', this.capturedData );
+      if(!this.failed) this.failed = '';
+      this.failed+=this.capturedData;
+    }
+  };
+  ClucDieOnError.prototype.onClose = function(){
+    if(this.failed){
+      throw this.failed;
+    }
+  };
+  return ClucDieOnError;
 })();
 
 Cluc.rule = {
