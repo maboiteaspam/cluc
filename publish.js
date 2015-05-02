@@ -95,7 +95,7 @@ inquirer.prompt([{
   streamOrDie('mkdir -p /tmp/'+pkg.name);
   streamOrDie('cd /tmp/'+pkg.name);
   streamDisplay('git clone '+pkg.repository.url+' .');
-  streamDisplay('git checkout gh-pages');
+  streamDisplay('git checkout -b gh-pages');
   streamDisplay('git reset --hard');
   streamDisplay('git pull origin gh-pages');
   streamOrDie('rm -fr ./*');
