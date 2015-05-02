@@ -5,7 +5,7 @@ var inquirer = require('inquirer');
 var semver = require('semver');
 var fs = require('fs');
 
-var Cluc = require('cluc');
+var Cluc = require('./');
 
 
 var revision = pkg.version;
@@ -93,6 +93,7 @@ inquirer.prompt([{
   streamDisplay('git reset --hard');
   streamDisplay('git pull origin gh-pages');
   streamOrDie('rm -fr ./*');
+  streamOrDie('rm -fr ./.vagra*');
   streamOrDie('rm -fr ./.travis*');
   streamOrDie('rm -fr ./.giti*');
   streamOrDie('rm -fr ./.esli*');
