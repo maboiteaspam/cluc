@@ -81,6 +81,12 @@ inquirer.prompt([{
       fs.writeFileSync(file, c);
     }
   };
+  if(!pkg.name){
+    throw 'pkg.name is missing';
+  }
+  if(!pkg.repository){
+    throw 'pkg.repository is missing';
+  }
   ensureFileContain('.git/info/exclude', '\n.idea/\n');
   ensureFileContain('.git/info/exclude', '\ngithub.json/\n');
   gitAdd('-A');

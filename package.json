@@ -1,8 +1,12 @@
 {
   "name": "cluc",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "command line under control",
   "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "http://github.com/maboiteaspam/cluc.git"
+  },
   "scripts": {
     "test": "DEBUG=cluc mocha"
   },
@@ -26,7 +30,9 @@
     "unparse-args": "^1.0.1"
   },
   "devDependencies": {
+    "inquirer": "^0.8.2",
     "node-vagrant-bin": "^1.0.2",
+    "semver": "^4.3.3",
     "should": "^6.0.1"
   }
 }
