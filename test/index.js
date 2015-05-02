@@ -19,9 +19,12 @@ before(function(done){
     if(running===false){
       log.info('machine is starting please be patient');
       var box = vagrant.up('precise64',function(err,booted){
-        hasBooted = booted;
-        log.info('ok we are done !');
-        done();
+        if (!err){
+          hasBooted = booted;
+          log.info('ok we are done !');
+          return done();
+        }
+        done(err);
       });
       box.stdout.on('data', function(d){process.stdout.write(''+d)});
       box.stderr.on('data', function(d){process.stdout.write(''+d)});
@@ -68,8 +71,8 @@ describe('cluc', function(){
         if(err) log.error(err);
         this.confirm(/v([0-9]+)\.([0-9]+)\.([0-9]+)/, 'Node version is v%s.%s.%s ');
         this.confirm(/(v[0-9-.]+)/);
-        this.success(/12\.0/, 'It s the latest !');
-        this.mustnot(/12\.0/, 'It should not be v0.12.0.').or(clucLine.die());
+        this.success(/12\.[0-9]/, 'It s the latest !');
+        this.mustnot(/12\.[0-9]/, 'It should not be v0.12.x.').or(clucLine.die());
         this.display();
         this.redo(2);
       })

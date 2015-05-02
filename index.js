@@ -9,6 +9,7 @@ log.addLevel('cmd', 2003, { fg: 'white', bg: 'grey' }, '<CMD');
 log.addLevel('answer', 2003, { fg: 'white', bg: 'grey' }, '<ANS');
 
 var util = require('util');
+var cline = require('cline-parser');
 var _ = require('underscore');
 var _s = require('underscore.string');
 var symbols = require('symbolsjs');
@@ -346,38 +347,8 @@ var ClucChildProcess = (function(){
     return new (this.OutputHelper)();
   };
   ClucChildProcess.prototype.stream = function(cmdStr,then){
-    // - command line parser. Could not find how to re use node parser.
-    cmdStr = cmdStr.match(/^([^ ]+)(.+)/);
-    var prgm = cmdStr[1];
-    cmdStr = _s.trim(cmdStr[2]);
-    var args = [];
-    var isquote=false;
-    cmdStr.split(" ").forEach(function (part){
-      if(part.match(/^['"]/)){
-        args.push(part);
-        isquote = true;
-      }else if(part.match(/['"]$/) && !part.match(/\\['"]$/) ){
-        args[args.length-1] += ''+part+' ';
-        isquote = false;
-      }else{
-
-        if(isquote){
-          args[args.length-1] += ''+part+' ';
-        } else{
-          args.push(part);
-        }
-      }
-    });
-    args.forEach(function(arg,i){
-      var m = arg.match(/^\s*["'](.+)["']\s*$/);
-      if( m ){
-        args[i] = m[1]
-      }
-    });
-    args[args.length-1] = _s.trim(args[args.length-1]);
-    // - command line parser. Could not find how to re use node parser.
-
-    var c = child_process.spawn(prgm, args);
+    var parsed = cline(cmdStr);
+    var c = child_process.spawn(parsed.prg, parsed.args);
     then(null, c.stderr,  c.stdout, c.stdin, c);
   };
   ClucChildProcess.prototype.exec = function(cmdStr,then){
