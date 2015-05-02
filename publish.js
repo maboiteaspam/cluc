@@ -14,7 +14,7 @@ var cleanUpFiles = [
   './.esli*'
 ];
 var jsdox = {
-  'docs/index.js':'index.js'
+  'docs/':'index.js'
 };
 var releaseTypes = [
   "major",
