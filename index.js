@@ -497,8 +497,8 @@ var ClucChildProcess = (function(){
       } else{
         this.shell = child_process.spawn('bash', []);
       }
-      this.shell.stdout.setMaxListeners(25);
-      this.shell.stderr.setMaxListeners(25);
+      this.shell.stdout.setMaxListeners(50);
+      this.shell.stderr.setMaxListeners(50);
       this.shell.stdout.on('close' , function(){
         debug('stdout closed');
       });
