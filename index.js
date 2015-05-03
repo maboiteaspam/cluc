@@ -569,6 +569,9 @@ var ClucContext = (function(){
   ClucContext.prototype.spin = function(search ){
     return this.pushRule(ClucSpin, arguments);
   };
+  ClucContext.prototype.spinUntil = function(search ){
+    return this.pushRule(ClucSpinUntil, arguments);
+  };
   ClucContext.prototype.progress = function(search ){
     return this.pushRule(ClucProgress, arguments);
   };
@@ -605,32 +608,37 @@ var ClucContext = (function(){
         throw ex; // shall it be voided?
       }
 
+      var matched = false;
       rules.forEach(function(rule){
-
-        rule.testData(stdout, 'stdout');
-        rule.testData(stderr, 'stderr');
+        matched = rule.testData(stdout, 'stdout', matched) || matched;
+        matched = rule.testData(stderr, 'stderr', matched) || matched;
       });
-      rules.forEach(function(rule){
 
+      rules.forEach(function(rule){
         rule.close();
         if(rule.hasFailed()) failedRules.push(rule);
       });
+
     } else if(stdout){
+
       byline(stdout).on('data' , function(d){
+        var matched = false;
         rules.forEach(function(rule){
-          rule.testData((''+d), 'stdout');
+          matched = rule.testData((''+d), 'stdout', matched) || matched;
         });
       });
       byline(stderr).on('data' , function(d){
         rules.forEach(function(rule){
-          rule.testData((''+d), 'stderr');
+          matched = rule.testData((''+d), 'stderr', matched) || matched;
         });
       });
 
       stdout.on('close' , function(){
         process.nextTick(function(){
+          var matched = false;
           rules.forEach(function(rule){
-            rule.close();
+            rule.close(matched);
+            matched = rule.matched || matched;
             if(rule.hasFailed()) failedRules.push(rule);
             rule.stdin = null;
           });
@@ -721,19 +729,22 @@ var ClucRule = (function(){
           var userMsg = this.userDefinedMessage;
           Object.keys(captures).forEach(function(name){
             var value = captures[name].pop();
-            userMsg = userMsg.replace(new RegExp(name,'g'), value);
+            userMsg = userMsg.replace(new RegExp(name,'g'), (value||'-'));
           });
           return userMsg;
         }else{
           var printArgs = [].concat(this.matched);
           printArgs.shift();
+          printArgs = printArgs.map(function(v){
+            return v || '-';
+          });
           return _s.vsprintf(this.userDefinedMessage, printArgs);
         }
       }
       return this.userDefinedMessage;
     }
-    if(_.isString(this.search) ){
-      return this.matched;
+    if(_.isString(this.search) && !this.matched ){
+      return this.search;
     }
     if(this.search instanceof RegExp && this.matched){
       return this.matched[1] ||
@@ -742,7 +753,7 @@ var ClucRule = (function(){
     return this.search;
   };
 
-  ClucRule.prototype.testData = function(data, stdpipe){
+  ClucRule.prototype.testData = function(data, stdpipe, alreadyMatched){
     this.capturedData = ''+data;
     if(this.search instanceof RegExp ){
       this.matched = this.search.exec(this.capturedData);
@@ -752,12 +763,13 @@ var ClucRule = (function(){
     if(!this.hasMatchedOnce && !!this.matched === true){
       this.hasMatchedOnce = true;
       if(this.onceMatch){
-        this.onceMatch(stdpipe);
+        this.onceMatch(stdpipe, alreadyMatched);
       }
     }
     if(this.onData){
-      this.onData(!!this.matched, stdpipe);
+      this.onData(!!this.matched, stdpipe, alreadyMatched);
     }
+    return this.matched;
   };
 
   ClucRule.prototype.close = function(){
@@ -797,7 +809,8 @@ var ClucSuccess = (function(){
   util.inherits(ClucSuccess, ClucRule);
   ClucSuccess.prototype.onceMatch = function(){
     this.failed = true;
-    log.success(' '+symbols.ok+' ', '\n'+(this.forgeErrorMessage() )+'\n' );
+    log.success(' '+symbols.ok+' ', ''+(this.forgeErrorMessage() )+'' );
+    console.log('');
   };
   ClucSuccess.prototype.hasFailed = function(){
     return !this.failed;
@@ -823,6 +836,7 @@ var ClucConfirm = (function(){
   ClucConfirm.prototype.onceMatch = function(){
     this.failed = true;
     log.confirm('   ', this.forgeErrorMessage());
+    console.log('');
   };
   ClucConfirm.prototype.hasFailed = function(){
     return !this.failed;
@@ -877,6 +891,28 @@ var ClucSpin = (function(){
   return ClucSpin;
 })();
 
+var ClucSpinUntil = (function(){
+  var ClucSpinUntil = function(){
+    this.spinner = new Spinner(this.userDefinedMessage || '%s');
+    this.spinner.setSpinnerString('|/-\\');
+    this.spinner.start();
+  };
+  util.inherits(ClucSpinUntil, ClucRule);
+  ClucSpinUntil.prototype.onData = function(matched){
+    if(matched){
+      if(this.spinner){
+        this.spinner.stop(true);
+      }
+    }
+  };
+  ClucSpinUntil.prototype.onClose = function(){
+    if(this.spinner){
+      this.spinner.stop(true);
+    }
+  };
+  return ClucSpinUntil;
+})();
+
 var ClucProgress = (function(){
   var ClucProgress = function(){};
   util.inherits(ClucProgress, ClucRule);
@@ -921,9 +957,11 @@ var ClucAnswer = (function(){
 var ClucDisplay = (function(){
   var ClucDisplay = function(){};
   util.inherits(ClucDisplay, ClucRule);
-  ClucDisplay.prototype.onData = function(){
-    var data = this.capturedData===null?'no data\n':this.capturedData;
-    log.watch('   ', data );
+  ClucDisplay.prototype.onData = function(matched, stdpipe, alreadyMatched){
+    if(!alreadyMatched){
+      var data = this.capturedData===null?'no data\n':this.capturedData;
+      log.watch('   ', data );
+    }
   };
   ClucDisplay.prototype.onClose = function(){
     if(!this.search){
