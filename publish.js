@@ -32,11 +32,6 @@ inquirer.prompt([{
   message: 'Select a revision type?',
   choices: releaseTypes
 }], function( answers ) {
-  var releaseType = answers.release.match(/^\s*([a-z]+)\s*=>\s*(.+)$/i)[1];
-  var revision = answers.release.match(/^\s*([a-z]+)\s*=>\s*(.+)$/i)[2];
-  pkg.version = revision;
-  fs.writeFileSync('./package.json', JSON.stringify(pkg, null, 2)+'\n');
-
 
   var transport = new (Cluc.transports.process)();
   var line = (new Cluc(transport));
@@ -52,6 +47,7 @@ inquirer.prompt([{
       this.dieOnError();
     });
   };
+
   var gitPush = function(cmd){
     cmd = 'git -c core.askpass=true push '+cmd+'';
     return line.stream(cmd, function(){
@@ -77,7 +73,7 @@ inquirer.prompt([{
     });
   };
   var gitAdd = function(cmd){
-    cmd = 'git -c core.excludes=.idea  add '+cmd+'';
+    cmd = 'git add '+cmd+'';
     return line.stream(cmd, function(){
       this.display();
       this.answer(/^Username/i, github.username);
@@ -106,7 +102,7 @@ inquirer.prompt([{
     });
   };
   var gitCommit = function(cmd){
-    cmd = 'git -c core.excludes=.idea  commit -am "'+cmd.replace(/"/g,'\\"')+'"';
+    cmd = 'git commit -am "'+cmd.replace(/"/g,'\\"')+'"';
     return line.stream(cmd, function(){
       this.success(/\[([\w-]+)\s+([\w-]+)]/i,
         'branch\t\t%s\nnew revision\t%s');
@@ -118,6 +114,7 @@ inquirer.prompt([{
       this.display();
     });
   };
+
   var jsDox = function(from, to){
     return line.stream('jsdox --output '+to+' '+from, function(){
       this.spinUntil(/.+/);
@@ -131,6 +128,7 @@ inquirer.prompt([{
       this.display();
     });
   };
+
   var ensureFileContain = function(file, data){
     var c = fs.readFileSync(file);
     if((c+'').indexOf(data)==-1){
@@ -138,6 +136,46 @@ inquirer.prompt([{
       fs.writeFileSync(file, c);
     }
   };
+
+  var releaseProject = function(branch, releaseType, revision){
+    gitCheckout('-b '+branch+' '+pkg.repository.url+'');
+    gitPull(pkg.repository.url+' '+branch+'');
+    gitAdd('-A');
+    gitCommit('Publish '+releaseType+' '+revision);
+    gitPush(pkg.repository.url+' '+branch+'');
+    //streamOrDie('npm publish');
+  };
+
+
+  var generateDocumentation = function(projectPath){
+
+    streamOrDie('rm -fr /tmp/'+pkg.name);
+    streamOrDie('mkdir -p /tmp/'+pkg.name);
+    streamOrDie('cd /tmp/'+pkg.name);
+    gitClone('-b gh-pages '+pkg.repository.url+' .');
+    streamOrDie('ls -alh');
+    gitStatus();
+
+    streamOrDie('cp '+projectPath+'/README.md .');
+    Object.keys(jsdox).forEach(function(projectRelativePath){
+      jsDox(projectPath+'/'+projectRelativePath, jsdox[projectRelativePath]);
+    });
+
+    streamOrDie('cd '+projectPath);
+    mocha('markdown', '/tmp/'+pkg.name+'/docs/test.md');
+    streamOrDie('cd /tmp/'+pkg.name);
+
+    gitAdd('-A');
+    gitCommit('Generate doc '+releaseType+' '+revision);
+
+    gitPush('git@github.com:'+github.username+'/'+pkg.name+'.git gh-pages');
+
+    streamOrDie('cd '+projectPath);
+    streamOrDie('rm -fr /tmp/'+pkg.name);
+  };
+
+
+
   if(!pkg.name){
     throw 'pkg.name is missing';
   }
@@ -145,38 +183,22 @@ inquirer.prompt([{
     throw 'pkg.repository is missing';
   }
 
+
+  var releaseType = answers.release.match(/^\s*([a-z]+)\s*=>\s*(.+)$/i)[1];
+  var revision = answers.release.match(/^\s*([a-z]+)\s*=>\s*(.+)$/i)[2];
+  pkg.version = revision;
+  fs.writeFileSync('./package.json', JSON.stringify(pkg, null, 2)+'\n');
+
   ensureFileContain('.git/info/exclude', '\n.idea/\n');
   ensureFileContain('.git/info/exclude', '\ngithub.json/\n');
 
-  gitAdd('-A');
-  gitCommit('Publish '+releaseType+' '+revision);
-  gitPush('git@github.com:'+github.username+'/'+pkg.name+'.git master');
-
-  streamOrDie('rm -fr /tmp/'+pkg.name);
-  streamOrDie('mkdir -p /tmp/'+pkg.name);
-  streamOrDie('cd /tmp/'+pkg.name);
-  gitClone('-b gh-pages '+pkg.repository.url+' .');
-  gitStatus();
-  streamOrDie('cp '+__dirname+'/README.md .');
-  Object.keys(jsdox).forEach(function(projectPath){
-    jsDox(__dirname+'/'+projectPath, jsdox[projectPath]);
-  });
-
-  streamOrDie('cd '+__dirname);
-  mocha('markdown', '/tmp/'+pkg.name+'/docs/test.md');
-  streamOrDie('cd /tmp/'+pkg.name);
-
-  streamOrDie('ls -alh');
-  gitAdd('-A');
-  gitCommit('Generate doc '+releaseType+' '+revision);
-  gitPush('git@github.com:'+github.username+'/'+pkg.name+'.git gh-pages');
-  streamOrDie('cd '+__dirname);
-  //streamOrDie('npm publish');
-  streamOrDie('rm -fr /tmp/'+pkg.name);
+  releaseProject('master', releaseType, revision);
+  generateDocumentation(__dirname);
 
   transport.run(line, function(){
     console.log('All done');
   });
+
 });
 
 
