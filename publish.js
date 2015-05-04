@@ -210,7 +210,7 @@ line.choose('Select a revision type', releaseTypes, function(answer){
   ensureFileContain('.git/info/exclude', '\ngithub.json/\n');
 
   releaseProject('master', __dirname, releaseType, revision);
-  generateDocumentation('gh-pages', __dirname, releaseType, revision);
+  //generateDocumentation('gh-pages', __dirname, releaseType, revision);
 
 });
 
