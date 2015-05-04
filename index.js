@@ -26,83 +26,74 @@ var named = require('named-regexp').named;
 var Cluc = (function(){
   var Cluc = function(OutputHelper){
     this.cmds = [];
-    this.isRunning = false;
     this.OutputHelper = OutputHelper || Cluc.output.process;
     this.recordStream = through();
   };
   Cluc.prototype.stream = function(cmd,fn){
-    if(this.isRunning) this.cmds.unshift({cmd:cmd, fn:fn, t:'stream',s:null});
-    else this.cmds.push({cmd:cmd, fn:fn, t:'stream',s:null});
+    var unit = {cmd:cmd, fn:fn, t:'stream',s:null};
+    this.cmds.push(unit);
     return this;
   };
   Cluc.prototype.tail = function(cmd,fn){
-    if(this.isRunning) this.cmds.unshift({cmd:cmd, fn:fn, t:'tail',s:null});
-    else this.cmds.push({cmd:cmd, fn:fn, t:'tail',s:null});
+    var unit = {cmd:cmd, fn:fn, t:'tail',s:null};
+    this.cmds.push(unit);
     return this;
   };
   Cluc.prototype.exec = function(cmd,fn){
-    if(this.isRunning) this.cmds.unshift({cmd:cmd, fn:fn, t:'string',s:null});
-    else this.cmds.push({cmd:cmd, fn:fn, t:'string',s:null});
+    var unit = {cmd:cmd, fn:fn, t:'string',s:null};
+    this.cmds.push(unit);
     return this;
   };
   Cluc.prototype.wait = function(fn){
-    if(this.isRunning) this.cmds.unshift({fn:fn, t:'wait'});
-    else this.cmds.push({fn:fn, t:'wait'});
+    var unit = {fn:fn, t:'wait'};
+    this.cmds.push(unit);
     return this;
   };
   Cluc.prototype.copy = function(fromPath, toPath, fn){
     var unit = {cmd:'copy %s to %s', fn:fn, t:'copy', fp:fromPath, tp:toPath};
     unit.cmd = _s.sprintf(unit.cmd,unit.fp,unit.tp);
-    if(this.isRunning) this.cmds.unshift(unit);
-    else this.cmds.push(unit);
+    this.cmds.push(unit);
     return this;
   };
   Cluc.prototype.download = function(fromPath, toPath, fn){
     var unit = {cmd:'download %s to %s', fn:fn, t:'download', fp:fromPath, tp:toPath};
     unit.cmd = _s.sprintf(unit.cmd,unit.fp,unit.tp);
-    if(this.isRunning) this.cmds.unshift(unit);
-    else this.cmds.push(unit);
+    this.cmds.push(unit);
     return this;
   };
   Cluc.prototype.emptyDir = function(path, fn){
     var unit = {cmd:'emptyDir %s', fn:fn, t:'emptyDir', p:path};
     unit.cmd = _s.sprintf(unit.cmd,path);
-    if(this.isRunning) this.cmds.unshift(unit);
-    else this.cmds.push(unit);
+    this.cmds.push(unit);
     return this;
   };
   Cluc.prototype.mkdir = function(path, fn){
     var unit = {cmd:'mkdir %s', fn:fn, t:'mkdir', p:path};
     unit.cmd = _s.sprintf(unit.cmd,path);
-    if(this.isRunning) this.cmds.unshift(unit);
-    else this.cmds.push(unit);
+    this.cmds.push(unit);
     return this;
   };
   Cluc.prototype.rmdir = function(path, fn){
     var unit = {cmd:'rmdir %s', fn:fn, t:'rmdir', p:path};
     unit.cmd = _s.sprintf(unit.cmd,path);
-    if(this.isRunning) this.cmds.unshift(unit);
-    else this.cmds.push(unit);
+    this.cmds.push(unit);
     return this;
   };
   Cluc.prototype.writeFile = function(path, content, fn){
     var unit = {cmd:'writeFile %s', fn:fn, t:'writeFile', p:path, c:content};
     unit.cmd = _s.sprintf(unit.cmd,path);
-    if(this.isRunning) this.cmds.unshift(unit);
-    else this.cmds.push(unit);
+    this.cmds.push(unit);
     return this;
   };
   Cluc.prototype.title = function(){
     var args = Array.prototype.slice.call(arguments);
     var unit = { t:'title', d:args };
-    if(this.isRunning) this.cmds.unshift(unit);
-    else this.cmds.push(unit);
+    this.cmds.push(unit);
     return this;
   };
   Cluc.prototype.ask = function(options, fn){
     var unit = {fn: fn, t:'ask', d:options };
-    if(this.isRunning) this.cmds.unshift(unit);
-    else this.cmds.push(unit);
+    this.cmds.push(unit);
     return this;
   };
   Cluc.prototype.choose = function(message, choices, then){
@@ -135,16 +126,14 @@ var Cluc = (function(){
       then_.apply(null,arguments);
     };
 
-    if(!this.isRunning && this.cmds.length){
+    if(this.cmds.length){
 
-      this.isRunning = true;
 
       function _next(context){
 
         var cmd = null;
         if(!(context instanceof ClucContext)){
           if(!cmds.length){
-            that.isRunning = false;
             return then();
           }
           cmd = cmds.shift();

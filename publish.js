@@ -26,9 +26,15 @@ releaseTypes.forEach(function(t, i){
   releaseTypes[i] = ("_         " + t).slice(t.length)+' => '+r;
 });
 
-var transport = new (Cluc.transports.process)();
-var line = (new Cluc(transport));
-line.choose('Select a revision type', releaseTypes, function(answer){
+inquirer.prompt([{
+  type: 'list',
+  name: 'release',
+  message: 'Select a revision type?',
+  choices: releaseTypes
+}], function( answers ) {
+
+  var transport = new (Cluc.transports.process)();
+  var line = (new Cluc(transport));
 
   var streamDisplay = function(cmd){
     return line.stream(cmd, function(){
@@ -203,19 +209,21 @@ line.choose('Select a revision type', releaseTypes, function(answer){
     throw 'pkg.repository is missing';
   }
 
-  var releaseType = answer.match(/^\s*([a-z]+)\s*=>\s*(.+)$/i)[1];
-  var revision = answer.match(/^\s*([a-z]+)\s*=>\s*(.+)$/i)[2];
+
+  var releaseType = answers.release.match(/^\s*([a-z]+)\s*=>\s*(.+)$/i)[1];
+  var revision = answers.release.match(/^\s*([a-z]+)\s*=>\s*(.+)$/i)[2];
 
   ensureFileContain('.git/info/exclude', '\n.idea/\n');
   ensureFileContain('.git/info/exclude', '\ngithub.json/\n');
 
   releaseProject('master', __dirname, releaseType, revision);
-  //generateDocumentation('gh-pages', __dirname, releaseType, revision);
+  generateDocumentation('gh-pages', __dirname, releaseType, revision);
+
+  transport.run(line, function(){
+    console.log('All done');
+    transport.close()
+  });
 
 });
 
-transport.run(line, function(){
-  console.log('All done');
-  transport.close()
-});
 

@@ -19,7 +19,7 @@ module.exports = {
           this.success(/(Removing [^ ]+\s+[.]+)/i, 'Package removed !');
           this.warn(/(Unable to locate package )/i, 'Package not found');
         }).stream('sudo apt-get clean', function(){
-          //this.display();
+          this.display();
         });
       },
       install: function(){
@@ -33,7 +33,7 @@ module.exports = {
           this.warn(/(0 newly installed)/i, 'Package not installed');
           this.confirm(/([^ /]+)\.deb/i, "version is %s");
           this.success(/(Setting up)/i, 'Package installed !');
-          //this.display();
+          this.display();
         });
       },
       status: function(){}
