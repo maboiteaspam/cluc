@@ -82,6 +82,13 @@ var Cluc = (function(){
     else this.cmds.push(unit);
     return this;
   };
+  Cluc.prototype.writeFile = function(path, content, fn){
+    var unit = {cmd:'writeFile %s', fn:fn, t:'writeFile', p:path, c:content};
+    unit.cmd = _s.sprintf(unit.cmd,path);
+    if(this.isRunning) this.cmds.unshift(unit);
+    else this.cmds.push(unit);
+    return this;
+  };
   Cluc.prototype.concat = function(other){
     if(other instanceof Cluc ){
       this.cmds = this.cmds.concat(other.cmds);
@@ -213,19 +220,25 @@ var Cluc = (function(){
 
           }else if(execType=='download'){
             transport.download(cmd.fp,cmd.tp, function downloadFn(err){
-              cmd.fn(err);
+              if(cmd.fn) cmd.fn(err);
               _next();
             });
 
           }else if(execType=='mkdir'){
             transport.mkdir(cmd.p, function mkdirFn(err){
-              cmd.fn(err);
+              if(cmd.fn) cmd.fn(err);
               _next();
             });
 
           }else if(execType=='rmdir'){
             transport.rmdir(cmd.p, function rmdirFn(err){
-              cmd.fn(err);
+              if(cmd.fn) cmd.fn(err);
+              _next();
+            });
+
+          }else if(execType=='writeFile'){
+            transport.writeFile(cmd.p, cmd.c, function writeFileFn(err){
+              if(cmd.fn) cmd.fn(err);
               _next();
             });
           }
@@ -305,6 +318,9 @@ var ClucSsh = (function(){
   };
   ClucSsh.prototype.rmdir = function(path,then){
     ssh.rmdir(this.shell, path, then);
+  };
+  ClucSsh.prototype.writeFile = function(path, content, then){
+    ssh.writeFile(this.shell, path, content, then);
   };
 
   ClucSsh.prototype.run = function(clucLine, server, then){
@@ -476,6 +492,9 @@ var ClucChildProcess = (function(){
   };
   ClucChildProcess.prototype.rmdir = function(path, then){
     fs.remove(path,then);
+  };
+  ClucChildProcess.prototype.writeFile = function(path, content, then){
+    fs.writeFile(path, content, then);
   };
   ClucChildProcess.prototype.run = function(clucLine, then){
     var that = this;

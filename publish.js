@@ -87,6 +87,12 @@ inquirer.prompt([{
       this.display();
     });
   };
+  var gitFetch = function(cmd){
+    cmd = 'git fetch '+cmd+'';
+    return line.stream(cmd, function(){
+      this.display();
+    });
+  };
   var gitCheckout = function(cmd){
     cmd = 'git checkout '+cmd+'';
     return line.stream(cmd, function(){
@@ -137,8 +143,12 @@ inquirer.prompt([{
     }
   };
 
-  var releaseProject = function(branch, releaseType, revision){
-    gitCheckout('-b '+branch+' '+pkg.repository.url+'');
+  var releaseProject = function(branch, projectPath, releaseType, revision){
+    streamOrDie('cd '+projectPath);
+    gitFetch(pkg.repository.url);
+    gitCheckout(branch);
+    pkg.version = revision;
+    line.writeFile('./package.json', JSON.stringify(pkg, null, 2)+'\n');
     gitPull(pkg.repository.url+' '+branch+'');
     gitAdd('-A');
     gitCommit('Publish '+releaseType+' '+revision);
@@ -147,12 +157,12 @@ inquirer.prompt([{
   };
 
 
-  var generateDocumentation = function(projectPath){
+  var generateDocumentation = function(branch, projectPath){
 
     streamOrDie('rm -fr /tmp/'+pkg.name);
     streamOrDie('mkdir -p /tmp/'+pkg.name);
     streamOrDie('cd /tmp/'+pkg.name);
-    gitClone('-b gh-pages '+pkg.repository.url+' .');
+    gitClone('-b '+branch+' '+pkg.repository.url+' .');
     streamOrDie('ls -alh');
     gitStatus();
 
@@ -168,7 +178,7 @@ inquirer.prompt([{
     gitAdd('-A');
     gitCommit('Generate doc '+releaseType+' '+revision);
 
-    gitPush('git@github.com:'+github.username+'/'+pkg.name+'.git gh-pages');
+    gitPush(''+pkg.repository.url+' '+branch);
 
     streamOrDie('cd '+projectPath);
     streamOrDie('rm -fr /tmp/'+pkg.name);
@@ -186,14 +196,12 @@ inquirer.prompt([{
 
   var releaseType = answers.release.match(/^\s*([a-z]+)\s*=>\s*(.+)$/i)[1];
   var revision = answers.release.match(/^\s*([a-z]+)\s*=>\s*(.+)$/i)[2];
-  pkg.version = revision;
-  fs.writeFileSync('./package.json', JSON.stringify(pkg, null, 2)+'\n');
 
   ensureFileContain('.git/info/exclude', '\n.idea/\n');
   ensureFileContain('.git/info/exclude', '\ngithub.json/\n');
 
-  releaseProject('master', releaseType, revision);
-  generateDocumentation(__dirname);
+  releaseProject('master', __dirname, releaseType, revision);
+  generateDocumentation('gh-pages', __dirname);
 
   transport.run(line, function(){
     console.log('All done');
