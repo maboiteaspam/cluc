@@ -15,6 +15,7 @@ Bringing machine 'precise64' up with 'virtualbox' provider...
     precise64: SSH username: vagrant
     precise64: SSH auth method: private key
     precise64: Warning: Connection timeout. Retrying...
+    precise64: Warning: Remote connection disconnect. Retrying...
 ==> precise64: Machine booted and ready!
 ==> precise64: Checking for guest additions in VM...
     precise64: The guest additions on this VM do not match the installed version of
@@ -30,10 +31,43 @@ Bringing machine 'precise64' up with 'virtualbox' provider...
     precise64: /vagrant => /home/maboiteaspam/Bureau/cluc
 ==> precise64: Machine already provisioned. Run `vagrant provision` or use the `--provision`
 ==> precise64: to force provisioning. Provisioners marked to run always will still run.
-==> precise64: Attempting graceful shutdown of VM...
-==> centos: Domain is not created. Please run `vagrant up` first.
-done !
+
+
+
+
+
+
+
+
 # TOC
    - [cluc](#cluc)
 <a name=""></a>
  
+<a name="cluc"></a>
+# cluc
+can work on ssh.
+
+```js
+var Cluc = require('../index.js');
+    var server = servers.vagrant.ssh;
+    var clucLine = (new Cluc())
+      .exec('ls -alh' , function(err,stdout,stderr){
+        if(err) log.error(err);
+        if(stderr) log.error(stderr);
+        this.confirm(/vagrant/, 'Username should display on unix.');
+        this.warn(/root/, 'Some files does not belong vagrant users.');
+        this.display();
+      })
+      .stream('ls -a' , function(err,stdout,stderr){
+        if(err) log.error(err);
+        this.confirm(/vagrant/, 'Username should display on unix.');
+        this.warn(/root/, 'Some files does not belong vagrant users.');
+        this.display();
+      });
+    var ClucSsh = Cluc.transports.ssh;
+    (new ClucSsh()).run(clucLine, server, function(err){
+      if(err) return done(err);
+      done();
+    });
+```
+
