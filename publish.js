@@ -144,25 +144,27 @@ inquirer.prompt([{
   };
 
   var releaseProject = function(branch, projectPath, releaseType, revision){
+    var sshUrl = pkg.repository.url.replace(/https?:\/\//,'ssh://git@');
     streamOrDie('cd '+projectPath);
-    gitFetch(pkg.repository.url);
+    gitFetch(sshUrl);
     gitCheckout(branch);
     pkg.version = revision;
     line.writeFile('./package.json', JSON.stringify(pkg, null, 2)+'\n');
-    gitPull(pkg.repository.url+' '+branch+'');
+    gitPull(sshUrl+' '+branch+'');
     gitAdd('-A');
     gitCommit('Publish '+releaseType+' '+revision);
-    gitPush(pkg.repository.url+' '+branch+'');
+    gitPush(sshUrl+' '+branch+'');
     //streamOrDie('npm publish');
   };
 
 
   var generateDocumentation = function(branch, projectPath){
+    var sshUrl = pkg.repository.url.replace(/https?:\/\//,'ssh://git@');
 
     streamOrDie('rm -fr /tmp/'+pkg.name);
     streamOrDie('mkdir -p /tmp/'+pkg.name);
     streamOrDie('cd /tmp/'+pkg.name);
-    gitClone('-b '+branch+' '+pkg.repository.url+' .');
+    gitClone('-b '+branch+' '+sshUrl+' .');
     streamOrDie('ls -alh');
     gitStatus();
 
@@ -178,7 +180,7 @@ inquirer.prompt([{
     gitAdd('-A');
     gitCommit('Generate doc '+releaseType+' '+revision);
 
-    gitPush(''+pkg.repository.url+' '+branch);
+    gitPush(''+sshUrl+' '+branch);
 
     streamOrDie('cd '+projectPath);
     streamOrDie('rm -fr /tmp/'+pkg.name);
