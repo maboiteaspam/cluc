@@ -7,6 +7,7 @@ log.addLevel('success', 2002, { fg: 'white', bg: 'green' }, 'succ');
 log.addLevel('confirm', 2004, { fg: 'white', bg: 'blue' }, ' ok ');
 log.addLevel('cmd', 2003, { fg: 'white', bg: 'grey' }, '<CMD');
 log.addLevel('answer', 2003, { fg: 'white', bg: 'grey' }, '<ANS');
+log.addLevel('title', 2003, { fg: 'black', bg: 'yellow' }, ' !! ');
 
 var pkg = require('./package.json');
 var debug = require('debug')(pkg.name);
@@ -89,6 +90,13 @@ var Cluc = (function(){
     else this.cmds.push(unit);
     return this;
   };
+  Cluc.prototype.title = function(){
+    var args = Array.prototype.slice.call(arguments);
+    var unit = {t:'title', d:args };
+    if(this.isRunning) this.cmds.unshift(unit);
+    else this.cmds.push(unit);
+    return this;
+  };
   Cluc.prototype.concat = function(other){
     if(other instanceof Cluc ){
       this.cmds = this.cmds.concat(other.cmds);
@@ -127,10 +135,13 @@ var Cluc = (function(){
         }
 
         context.init(cmd);
-        var cmdStr = cmd.cmd;
 
-        log.cmd('', cmdStr);
-        recordStream.write('\n$> '+cmdStr+'\n');
+        if(cmd.cmd){
+          var cmdStr = cmd.cmd;
+
+          log.cmd('', cmdStr);
+          recordStream.write('\n$> '+cmdStr+'\n');
+        }
 
         if(context){
 
@@ -241,6 +252,10 @@ var Cluc = (function(){
               if(cmd.fn) cmd.fn(err);
               _next();
             });
+
+          }else if(execType=='title'){
+            log.title.apply(null, cmd.d);
+            _next();
           }
 
         }

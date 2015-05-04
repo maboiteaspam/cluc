@@ -144,6 +144,8 @@ inquirer.prompt([{
   };
 
   var releaseProject = function(branch, projectPath, releaseType, revision){
+    line.title('', 'Release project\non %s to %s %s',
+      branch, releaseType, revision);
     var sshUrl = pkg.repository.url.replace(/https?:\/\//,'ssh://git@');
     streamOrDie('cd '+projectPath);
     gitFetch(sshUrl);
@@ -158,12 +160,16 @@ inquirer.prompt([{
   };
 
 
-  var generateDocumentation = function(branch, projectPath){
+  var generateDocumentation = function(branch, projectPath, releaseType, revision){
+    line.title('', 'Generating documentation\non %s to %s %s',
+      branch, releaseType, revision);
+
     var sshUrl = pkg.repository.url.replace(/https?:\/\//,'ssh://git@');
 
     streamOrDie('rm -fr /tmp/'+pkg.name);
     streamOrDie('mkdir -p /tmp/'+pkg.name);
     streamOrDie('cd /tmp/'+pkg.name);
+
     gitClone('-b '+branch+' '+sshUrl+' .');
     streamOrDie('ls -alh');
     gitStatus();
@@ -203,7 +209,7 @@ inquirer.prompt([{
   ensureFileContain('.git/info/exclude', '\ngithub.json/\n');
 
   releaseProject('master', __dirname, releaseType, revision);
-  generateDocumentation('gh-pages', __dirname);
+  generateDocumentation('gh-pages', __dirname, releaseType, revision);
 
   transport.run(line, function(){
     console.log('All done');
