@@ -32,9 +32,13 @@ inquirer.prompt([{
   message: 'Select a revision type?',
   choices: releaseTypes
 }], function( answers ) {
+});
 
-  var transport = new (Cluc.transports.process)();
-  var line = (new Cluc(transport));
+
+
+var transport = new (Cluc.transports.process)();
+var line = (new Cluc(transport));
+line.choose('Select a revision type', releaseTypes, function(answer){
 
   var streamDisplay = function(cmd){
     return line.stream(cmd, function(){
@@ -107,6 +111,13 @@ inquirer.prompt([{
       this.display();
     });
   };
+  var gitPreferCleanTree = function(){
+    var cmd = 'git status';
+    return line.stream(cmd, function(){
+      this.success(/(est propre|is clean)/i,'Tree is unclean')
+        .or(line.confirmToStop('%s, stop now ?', true));
+    });
+  };
   var gitCommit = function(cmd){
     cmd = 'git commit -am "'+cmd.replace(/"/g,'\\"')+'"';
     return line.stream(cmd, function(){
@@ -148,6 +159,7 @@ inquirer.prompt([{
       branch, releaseType, revision);
     var sshUrl = pkg.repository.url.replace(/https?:\/\//,'ssh://git@');
     streamOrDie('cd '+projectPath);
+    gitPreferCleanTree();
     gitFetch(sshUrl);
     gitCheckout(branch);
     pkg.version = revision;
@@ -201,9 +213,8 @@ inquirer.prompt([{
     throw 'pkg.repository is missing';
   }
 
-
-  var releaseType = answers.release.match(/^\s*([a-z]+)\s*=>\s*(.+)$/i)[1];
-  var revision = answers.release.match(/^\s*([a-z]+)\s*=>\s*(.+)$/i)[2];
+  var releaseType = answer.match(/^\s*([a-z]+)\s*=>\s*(.+)$/i)[1];
+  var revision = answer.match(/^\s*([a-z]+)\s*=>\s*(.+)$/i)[2];
 
   ensureFileContain('.git/info/exclude', '\n.idea/\n');
   ensureFileContain('.git/info/exclude', '\ngithub.json/\n');
@@ -211,10 +222,10 @@ inquirer.prompt([{
   releaseProject('master', __dirname, releaseType, revision);
   generateDocumentation('gh-pages', __dirname, releaseType, revision);
 
-  transport.run(line, function(){
-    console.log('All done');
-  });
-
 });
 
+transport.run(line, function(){
+  console.log('All done');
+  transport.close()
+});
 

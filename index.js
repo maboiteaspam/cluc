@@ -7,7 +7,7 @@ log.addLevel('success', 2002, { fg: 'white', bg: 'green' }, 'succ');
 log.addLevel('confirm', 2004, { fg: 'white', bg: 'blue' }, ' ok ');
 log.addLevel('cmd', 2003, { fg: 'white', bg: 'grey' }, '<CMD');
 log.addLevel('answer', 2003, { fg: 'white', bg: 'grey' }, '<ANS');
-log.addLevel('title', 2003, { fg: 'black', bg: 'yellow' }, ' !! ');
+log.addLevel('title', 2003, { fg: 'yellow' }, '/!\\ ');
 
 var pkg = require('./package.json');
 var debug = require('debug')(pkg.name);
@@ -19,6 +19,8 @@ var Spinner = require('cli-spinner').Spinner;
 var ProgressBar = require('progress');
 var through = require('through');
 var byline = require('byline');
+var inquirer = require('inquirer');
+var async = require('async');
 var named = require('named-regexp').named;
 
 var Cluc = (function(){
@@ -92,10 +94,27 @@ var Cluc = (function(){
   };
   Cluc.prototype.title = function(){
     var args = Array.prototype.slice.call(arguments);
-    var unit = {t:'title', d:args };
+    var unit = {cmd:'title %s %s', t:'title', d:args };
     if(this.isRunning) this.cmds.unshift(unit);
     else this.cmds.push(unit);
     return this;
+  };
+  Cluc.prototype.ask = function(options, fn){
+    var unit = {cmd:'ask %j', fn: fn, t:'ask', d:options };
+    if(this.isRunning) this.cmds.unshift(unit);
+    else this.cmds.push(unit);
+    return this;
+  };
+  Cluc.prototype.choose = function(message, choices, then){
+    return this.ask({
+      name:'chosen',
+      type:'list',
+      choices:choices,
+      message:message
+    }, function(answers, next){
+      then(answers.chosen);
+      next();
+    });
   };
   Cluc.prototype.concat = function(other){
     if(other instanceof Cluc ){
@@ -143,6 +162,19 @@ var Cluc = (function(){
           recordStream.write('\n$> '+cmdStr+'\n');
         }
 
+        var runFailure = function(context){
+          var orFn = context.getOrRules();
+          var isDead = [];
+          orFn.forEach(function(rule){
+            isDead.push(function(_done){
+              rule.orFn( rule.forgeErrorMessage(), _done);
+            });
+          });
+          return async.parallel(isDead, function(err){
+            then(err);
+          });
+        };
+
         if(context){
 
           var execType = cmd.t;
@@ -160,16 +192,7 @@ var Cluc = (function(){
                       if(context.canRedo() ){
                         return _next( context );
                       }else if(orFn.length) {
-                        var isDead = [];
-                        orFn.forEach(function(rule){
-                          var err = rule.orFn( rule.forgeErrorMessage() );
-                          if(err){
-                            isDead.push(err)
-                          }
-                        });
-                        if(isDead.length){
-                          return then(isDead.pop());
-                        }
+                        return runFailure(context);
                       }
                     }
                     _next();
@@ -194,19 +217,10 @@ var Cluc = (function(){
               context.executeRules(error, stdout, stderr);
               if(context.hasFailed() ){
                 var orFn = context.getOrRules();
-                if(context.canRedo()){
+                if(context.canRedo() ){
                   return _next( context );
                 }else if(orFn.length) {
-                  var isDead = [];
-                  orFn.forEach(function(rule){
-                    var err = rule.orFn( rule.forgeErrorMessage() );
-                    if(err){
-                      isDead.push(err)
-                    }
-                  });
-                  if(isDead.length){
-                    return then(isDead.pop());
-                  }
+                  return runFailure(context);
                 }
               }
               _next();
@@ -256,6 +270,13 @@ var Cluc = (function(){
           }else if(execType=='title'){
             log.title.apply(null, cmd.d);
             _next();
+
+          }else if(execType=='ask'){
+            inquirer.prompt(cmd.d, function(){
+              var args = Array.prototype.slice.call(arguments);
+              args.push(_next);
+              if(cmd.fn) cmd.fn.apply(null, args);
+            } );
           }
 
         }
@@ -270,22 +291,61 @@ var Cluc = (function(){
 
     return false;
   };
-  Cluc.prototype.die = function(){
-    var err = new Error();
+  Cluc.prototype.die = function(err){
+    if(!err){
+      err = new Error();
+    }
     var s = err.stack.split('\n');
     s.shift();
     s.shift();
     var line = s.shift();
     line = _s.trim(line).replace(/.+\(([^):]+):([0-9]+):([0-9]+)\)/, "$1, line $2 col $3");
-    return function died(reason){
+    return function died(reason, then){
       var errorMsg = '\nend of process, reason is :';
       errorMsg += '\n' + (_.isArray(reason) ? reason.join('\n') : reason );
       errorMsg += '\n' + 'at '+line;
       errorMsg += '\n';
       log.error('', errorMsg);
-      var err = new Error(errorMsg);
       err.message = errorMsg;
-      return err;
+      then(err);
+    }
+  };
+  Cluc.prototype.confirmToProceed = function(message, def){
+    var that = this;
+    message = (message||'%s, do you prefer to proceed ?');
+    def = def===undefined?false:!!def;
+    var err = new Error();
+    return function confirmToProceed(reason, then){
+      inquirer.prompt({
+        name:'confirmed',
+        type:'confirm',
+        default: def,
+        message:message.replace('%s', reason)
+      }, function(answer){
+        if(answer.confirmed===true){
+          return then();
+        }
+        that.die(err)(reason, then);
+      });
+    }
+  };
+  Cluc.prototype.confirmToStop = function(message, def){
+    var that = this;
+    message = (message||'%s, do you prefer to stop ?');
+    def = def===undefined?true:!!def;
+    var err = new Error();
+    return function confirmToStop(reason, then){
+      inquirer.prompt({
+        name:'confirmed',
+        type:'confirm',
+        default: def,
+        message:message.replace('%s', reason)
+      }, function(answer){
+        if(answer.confirmed===false){
+          return then();
+        }
+        that.die(err)(reason, then);
+      });
     }
   };
   Cluc.prototype.record = function(writeStream){
@@ -392,7 +452,6 @@ var ClucSsh = (function(){
 var child_process = require('child_process');
 var fs = require('fs-extra');
 var glob = require("glob");
-var async = require("async");
 var ClucChildProcess = (function(){
   var ClucChildProcess = function(OutputHelper){
     this.shell = null;

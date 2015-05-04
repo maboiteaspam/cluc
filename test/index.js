@@ -173,10 +173,11 @@ describe('cluc', function(){
 
     var clucLine = (new Cluc())
       .stream('mkdir ~/test', function(){
-        this.warn(/cannot create directory.+/).or(function(err){
-          return new Error(err.toString());
+        this.warn(/cannot create directory.+/).or(function(err,then){
+          then(new Error(err));
         });
-        this.warn(/File exists/).or(function(){
+        this.warn(/File exists/).or(function(err,then){
+          then();
           // void
         });
         this.redo(2);
@@ -199,11 +200,12 @@ describe('cluc', function(){
 
     var clucLine = (new Cluc())
       .stream('mkdir ~/test', function(){
-        this.warn(/cannot create directory.+/).or(function(err){
-          return new Error(err.toString());
+        this.warn(/cannot create directory.+/).or(function(err,then){
+          then(new Error(err));
         });
-        this.warn(/File exists/).or(function(){
+        this.warn(/File exists/).or(function(err,then){
           // void
+          then();
         });
         this.redo(2);
       }).record(require('fs').createWriteStream(__dirname+'/fixtures/some.log'));

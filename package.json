@@ -13,6 +13,7 @@
   "author": "maboiteaspam",
   "license": "WTF",
   "dependencies": {
+    "inquirer": "^0.8.2",
     "async": "^0.9.0",
     "byline": "^4.2.1",
     "cli-spinner": "^0.2.0",
@@ -30,7 +31,6 @@
     "unparse-args": "^1.0.1"
   },
   "devDependencies": {
-    "inquirer": "^0.8.2",
     "node-vagrant-bin": "^1.0.2",
     "semver": "^4.3.3",
     "should": "^6.0.1"
