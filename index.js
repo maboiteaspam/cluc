@@ -94,13 +94,13 @@ var Cluc = (function(){
   };
   Cluc.prototype.title = function(){
     var args = Array.prototype.slice.call(arguments);
-    var unit = {cmd:'title %s %s', t:'title', d:args };
+    var unit = { t:'title', d:args };
     if(this.isRunning) this.cmds.unshift(unit);
     else this.cmds.push(unit);
     return this;
   };
   Cluc.prototype.ask = function(options, fn){
-    var unit = {cmd:'ask %j', fn: fn, t:'ask', d:options };
+    var unit = {fn: fn, t:'ask', d:options };
     if(this.isRunning) this.cmds.unshift(unit);
     else this.cmds.push(unit);
     return this;
@@ -113,7 +113,7 @@ var Cluc = (function(){
       message:message
     }, function(answers, next){
       then(answers.chosen);
-      next();
+      process.nextTick(next);
     });
   };
   Cluc.prototype.concat = function(other){

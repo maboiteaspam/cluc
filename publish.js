@@ -26,16 +26,6 @@ releaseTypes.forEach(function(t, i){
   releaseTypes[i] = ("_         " + t).slice(t.length)+' => '+r;
 });
 
-inquirer.prompt([{
-  type: 'list',
-  name: 'release',
-  message: 'Select a revision type?',
-  choices: releaseTypes
-}], function( answers ) {
-});
-
-
-
 var transport = new (Cluc.transports.process)();
 var line = (new Cluc(transport));
 line.choose('Select a revision type', releaseTypes, function(answer){
