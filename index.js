@@ -169,7 +169,8 @@ var Cluc = (function(){
             });
           });
           return async.parallel(isDead, function(err){
-            then(err);
+            if (err) then(err);
+            else _next();
           });
         };
 
@@ -661,6 +662,34 @@ var ClucContext = (function(){
     this.rules.push(rule);
     return rule;
   };
+
+  ClucContext.prototype.captureOnce = function(search, error, fn){
+    var rule = new ClucRule();
+    rule.init(search, error);
+    rule.onceMatch = fn;
+    this.rules.push(rule);
+    return rule;
+  };
+  ClucContext.prototype.capture = function(search, error, fn){
+    var rule = new ClucRule();
+    rule.init(search, error);
+    rule.onData = fn;
+    this.rules.push(rule);
+    return rule;
+  };
+  ClucContext.prototype.miss = function(search, error, fn){
+    var rule = new ClucRule();
+    rule.init(search, error);
+    rule.onClose = function(){
+      if(!rule.matched){
+        fn(rule);
+      }
+    };
+    this.rules.push(rule);
+    return rule;
+  };
+
+
   ClucContext.prototype.must = function(search, error){
     return this.pushRule(ClucMust, arguments);
   };
