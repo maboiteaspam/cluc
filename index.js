@@ -240,7 +240,7 @@ var Cluc = (function(){
             });
 
           }else if(execType=='putDir'){
-            transport.putDir(cmd.fp, cmd.lp, cmd.rp, function copyFn(err){
+            transport.putDir(cmd.lp, cmd.rp, function copyFn(err){
               cmd.fn(err);
               _next();
             });
