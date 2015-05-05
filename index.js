@@ -79,6 +79,12 @@ var Cluc = (function(){
     this.cmds.push(unit);
     return this;
   };
+  Cluc.prototype.putDir = function(localPath, remotePath, fn){
+    var unit = {cmd:'putDir %s', fn:fn, t:'putDir', lp:localPath, rp:remotePath};
+    unit.cmd = _s.sprintf(unit.cmd,path);
+    this.cmds.push(unit);
+    return this;
+  };
   Cluc.prototype.writeFile = function(path, content, fn){
     var unit = {cmd:'writeFile %s', fn:fn, t:'writeFile', p:path, c:content};
     unit.cmd = _s.sprintf(unit.cmd,path);
@@ -226,6 +232,12 @@ var Cluc = (function(){
               _next();
             });
 
+          }else if(execType=='putDir'){
+            transport.putDir(cmd.fp, cmd.lp, cmd.rp, function copyFn(err){
+              cmd.fn(err);
+              _next();
+            });
+
           }else if(execType=='emptyDir'){
             transport.emptyDir(cmd.p, function emptyDirFn(err){
               cmd.fn(err);
@@ -368,8 +380,11 @@ var ClucSsh = (function(){
       then(err, stdout, stderr, shell);
     });
   };
-  ClucSsh.prototype.copy = function(fromPath,toPath,then){
-    ssh.putDir(this.shell, fromPath,toPath, then);
+  ClucSsh.prototype.copy = function(fromPath, toPath, then){
+    ssh.putDir(this.shell, fromPath, toPath, then);
+  };
+  ClucSsh.prototype.putDir = function(fromPath, toPath, then){
+    ssh.putDir(this.shell, fromPath, toPath, then);
   };
   ClucSsh.prototype.emptyDir = function(path, then){
     ssh.emptyDir(this.shell, path, then);
@@ -440,7 +455,6 @@ var ClucSsh = (function(){
 
 var child_process = require('child_process');
 var fs = require('fs-extra');
-var glob = require("glob");
 var ClucChildProcess = (function(){
   var ClucChildProcess = function(OutputHelper){
     this.shell = null;
@@ -540,6 +554,9 @@ var ClucChildProcess = (function(){
     this.shell.stdin.write('\n');
     this.shell.stdin.write('echo "'+t+'"');
     this.shell.stdin.write('\n');
+  };
+  ClucChildProcess.prototype.putDir = function(fromPath, toPath, then){
+    fs.copy(fromPath,toPath,then);
   };
   ClucChildProcess.prototype.copy = function(fromPath, toPath, then){
     fs.copy(fromPath,toPath,then);
