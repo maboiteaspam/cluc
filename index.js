@@ -83,8 +83,8 @@ var Cluc = (function(){
     return this;
   };
   Cluc.prototype.putDir = function(localPath, remotePath, fn){
-    var unit = {cmd:'putDir %s', fn:fn, t:'putDir', lp:localPath, rp:remotePath};
-    unit.cmd = _s.sprintf(unit.cmd,path);
+    var unit = {cmd:'putDir %s %s', fn:fn, t:'putDir', lp:localPath, rp:remotePath};
+    unit.cmd = _s.sprintf(unit.cmd, localPath, remotePath);
     this.cmds.push(unit);
     return this;
   };
