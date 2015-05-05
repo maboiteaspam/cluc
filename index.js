@@ -24,6 +24,9 @@ var async = require('async');
 var named = require('named-regexp').named;
 
 var Cluc = (function(){
+  /**
+   * @class
+   */
   var Cluc = function(OutputHelper){
     this.cmds = [];
     this.OutputHelper = OutputHelper || Cluc.output.process;
@@ -362,6 +365,9 @@ var Cluc = (function(){
 var SSH2Utils = require('ssh2-utils');
 var ssh = new SSH2Utils();
 var ClucSsh = (function(){
+  /**
+   * @class
+   */
   var ClucSsh = function(OutputHelper){
     this.cmds = [];
     this.shell = null;
@@ -459,6 +465,9 @@ var ClucSsh = (function(){
 var child_process = require('child_process');
 var fs = require('fs-extra');
 var ClucChildProcess = (function(){
+  /**
+   * @class
+   */
   var ClucChildProcess = function(OutputHelper){
     this.shell = null;
     this.cmds = [];
@@ -629,6 +638,9 @@ Cluc.transports = {
 };
 
 var ClucContext = (function(){
+  /**
+   * @class
+   */
   var ClucContext = function(){
     this.init();
   };
@@ -784,6 +796,9 @@ var ClucContext = (function(){
 })();
 
 var ClucSSHContext = (function(){
+  /**
+   * @class
+   */
   var ClucSSHContext = function(server){
     this.server = server || null;
   };
@@ -811,6 +826,9 @@ Cluc.output = {
 };
 
 var ClucRule = (function(){
+  /**
+   * @class
+   */
   var ClucRule = function(){};
 
   ClucRule.prototype.init = function(search, userDefinedMessage){
@@ -895,6 +913,9 @@ var ClucRule = (function(){
 })();
 
 var ClucMust = (function(){
+  /**
+   * @class
+   */
   var ClucMust = function(){};
   util.inherits(ClucMust, ClucRule);
   ClucMust.prototype.onClose = function(matched){
@@ -907,6 +928,9 @@ var ClucMust = (function(){
 })();
 
 var ClucSuccess = (function(){
+  /**
+   * @class
+   */
   var ClucSuccess = function(){};
   util.inherits(ClucSuccess, ClucRule);
   ClucSuccess.prototype.onceMatch = function(){
@@ -921,6 +945,9 @@ var ClucSuccess = (function(){
 })();
 
 var ClucMustNot = (function(){
+  /**
+   * @class
+   */
   var ClucMustNot = function(){};
   util.inherits(ClucMustNot, ClucRule);
   ClucMustNot.prototype.onData = function(matched){
@@ -933,6 +960,9 @@ var ClucMustNot = (function(){
 })();
 
 var ClucConfirm = (function(){
+  /**
+   * @class
+   */
   var ClucConfirm = function(){};
   util.inherits(ClucConfirm, ClucRule);
   ClucConfirm.prototype.onceMatch = function(){
@@ -947,6 +977,9 @@ var ClucConfirm = (function(){
 })();
 
 var ClucWarn = (function(){
+  /**
+   * @class
+   */
   var ClucWarn = function(){};
   util.inherits(ClucWarn, ClucRule);
   ClucWarn.prototype.onceMatch = function(){
@@ -957,6 +990,9 @@ var ClucWarn = (function(){
 })();
 
 var ClucWatch = (function(){
+  /**
+   * @class
+   */
   var ClucWatch = function(){};
   util.inherits(ClucWatch, ClucRule);
   ClucWatch.prototype.onData = function(matched){
@@ -968,6 +1004,9 @@ var ClucWatch = (function(){
 })();
 
 var ClucSpin = (function(){
+  /**
+   * @class
+   */
   var ClucSpin = function(){};
   util.inherits(ClucSpin, ClucRule);
   ClucSpin.prototype.onData = function(matched){
@@ -994,6 +1033,9 @@ var ClucSpin = (function(){
 })();
 
 var ClucSpinUntil = (function(){
+  /**
+   * @class
+   */
   var ClucSpinUntil = function(){
     this.spinner = new Spinner(this.userDefinedMessage || '%s');
     this.spinner.setSpinnerString('|/-\\');
@@ -1016,6 +1058,9 @@ var ClucSpinUntil = (function(){
 })();
 
 var ClucProgress = (function(){
+  /**
+   * @class
+   */
   var ClucProgress = function(){};
   util.inherits(ClucProgress, ClucRule);
   ClucProgress.prototype.onData = function(matched){
@@ -1044,6 +1089,9 @@ var ClucProgress = (function(){
 })();
 
 var ClucAnswer = (function(){
+  /**
+   * @class
+   */
   var ClucAnswer = function(){};
   util.inherits(ClucAnswer, ClucRule);
   ClucAnswer.prototype.onData = function(matched){
@@ -1057,6 +1105,9 @@ var ClucAnswer = (function(){
 })();
 
 var ClucDisplay = (function(){
+  /**
+   * @class
+   */
   var ClucDisplay = function(){};
   util.inherits(ClucDisplay, ClucRule);
   ClucDisplay.prototype.onData = function(matched, stdpipe, alreadyMatched){
@@ -1075,6 +1126,9 @@ var ClucDisplay = (function(){
 })();
 
 var ClucDieOnError = (function(){
+  /**
+   * @class
+   */
   var ClucDieOnError = function(){};
   util.inherits(ClucDieOnError, ClucRule);
   ClucDieOnError.prototype.onData = function(matched, stdpipe){
