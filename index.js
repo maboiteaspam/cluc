@@ -247,7 +247,7 @@ var Cluc = (function(){
 
           }else if(execType=='emptyDir'){
             transport.emptyDir(cmd.p, function emptyDirFn(err){
-              cmd.fn(err);
+              if(cmd.fn) cmd.fn(err);
               _next();
             });
 
@@ -789,7 +789,7 @@ var ClucContext = (function(){
       });
 
       try{
-        this.cmd.fn.call(this, error, stdout, stderr);
+        if(this.cmd.fn) this.cmd.fn.call(this, error, stdout, stderr);
       }catch(ex){
         throw ex; // shall it be voided?
       }
