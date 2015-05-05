@@ -235,13 +235,13 @@ var Cluc = (function(){
 
           }else if(execType=='copy'){
             transport.copy(cmd.fp,cmd.tp, function copyFn(err){
-              cmd.fn(err);
+              if(cmd.fn) cmd.fn(err);
               _next();
             });
 
           }else if(execType=='putDir'){
             transport.putDir(cmd.lp, cmd.rp, function copyFn(err){
-              cmd.fn(err);
+              if(cmd.fn) cmd.fn(err);
               _next();
             });
 
