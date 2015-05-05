@@ -16,6 +16,7 @@ Bringing machine 'precise64' up with 'virtualbox' provider...
     precise64: SSH username: vagrant
     precise64: SSH auth method: private key
     precise64: Warning: Connection timeout. Retrying...
+    precise64: Warning: Remote connection disconnect. Retrying...
 ==> precise64: Machine booted and ready!
 ==> precise64: Checking for guest additions in VM...
     precise64: The guest additions on this VM do not match the installed version of
@@ -29,10 +30,15 @@ Bringing machine 'precise64' up with 'virtualbox' provider...
     precise64: VirtualBox Version: 4.3
 ==> precise64: Mounting shared folders...
     precise64: /vagrant => /home/maboiteaspam/Bureau/cluc
-==> precise64: Machine already provisioned. Run `vagrant provision` or use the `--provision`
-==> precise64: to force provisioning. Provisioners marked to run always will still run.
-==> precise64: Attempting graceful shutdown of VM...
-==> centos: Domain is not created. Please run `vagrant up` first.
+An action 'halt' was attempted on the machine 'precise64',
+but another process is already executing an action on the machine.
+Vagrant locks each machine for access by only one process at a time.
+Please wait until the other Vagrant process finishes modifying this
+machine, then try again.
+
+If you believe this message is in error, please check the process
+listing for any "ruby" or "vagrant" processes and kill them. Then
+try again.
 done !
 # TOC
    - [stream](#stream)
@@ -41,218 +47,3 @@ done !
    - [exec](#exec)
 <a name=""></a>
  
-<a name="stream"></a>
-# stream
-execute once.
-
-```js
-var Cluc = require('../index.js');
-    var dontCnt = 0;
-    var clucLine = (new Cluc())
-      .stream('node -v' , function(err,stdout,stderr){
-        if(err) log.error(err);
-        this.display();
-        dontCnt++;
-      });
-    var ClucProcess = Cluc.transports.process;
-    (new ClucProcess()).run(clucLine, function(err){
-      dontCnt.should.eql(1);
-      if(err) return done(err);
-      done();
-    });
-```
-
-can fail and stop.
-
-```js
-var Cluc = require('../index.js');
-    var dontCnt = 0;
-    var clucLine = (new Cluc())
-      .stream('node -v' , function(err,stdout,stderr){
-        if(err) log.error(err);
-        this.display();
-        this.mustnot(/12\.[0-9]/, 'It should not be v0.12.x.').or(clucLine.die());
-        this.mustnot(/12\.[0-9]/, 'It should not be v0.12.x.').or(clucLine.die());
-        dontCnt++;
-      })
-      .stream('node -v' , function(err,stdout,stderr){
-        dontCnt++;
-      });
-    var ClucProcess = Cluc.transports.process;
-    (new ClucProcess()).run(clucLine, function(err){
-      dontCnt.should.not.eql(2);
-      dontCnt.should.eql(1);
-      (err===null).should.be.false;
-      done();
-    });
-```
-
-can redo on failure.
-
-```js
-var Cluc = require('../index.js');
-    var dontCnt = 0;
-    var clucLine = (new Cluc())
-      .stream('node -v' , function(err,stdout,stderr){
-        if(err) log.error(err);
-        this.display();
-        this.mustnot(/12\.[0-9]/, 'It should not be v0.12.x.');
-        this.mustnot(/12\.[0-9]/, 'It should not be v0.12.x.');
-        this.redo(2);
-        dontCnt++;
-      })
-      .stream('node -v' , function(err,stdout,stderr){
-        dontCnt++;
-      });
-    var ClucProcess = Cluc.transports.process;
-    (new ClucProcess()).run(clucLine, function(err){
-      dontCnt.should.eql(3);
-      (err===null).should.be.false;
-      done();
-    });
-```
-
-<a name="tail"></a>
-# tail
-file.
-
-```js
-var Cluc = require('../index.js');
-    var dontCnt = 0;
-    var clucLine = (new Cluc())
-      .tail('sudo tail -f /var/log/messages -n 50' , function(err,stdout,stderr){
-        if(err) log.error(err);
-        this.display();
-        clucLine.wait((function(fn){
-          setTimeout(fn, 2500);
-        }));
-        dontCnt++;
-      });
-    var ClucProcess = Cluc.transports.process;
-    (new ClucProcess()).run(clucLine, function(err){
-      dontCnt.should.eql(1);
-      if(err) return done(err);
-      done();
-    });
-```
-
-<a name="orfn"></a>
-# orfn
-can execute on rule failure.
-
-```js
-var Cluc = require('../index.js');
-    var dontCnt = 0;
-    var clucLine = (new Cluc())
-      .stream('node -v' , function(err,stdout,stderr){
-        if(err) log.error(err);
-        this.display();
-        this.mustnot(/12\.[0-9]/, 'It should not be v0.12.x.').or(function(reason, then){
-          dontCnt++;
-          reason.should.eql('It should not be v0.12.x.');
-          then();
-        });
-      });
-    var ClucProcess = Cluc.transports.process;
-    (new ClucProcess()).run(clucLine, function(err){
-      dontCnt.should.eql(1);
-      done();
-    });
-```
-
-can return an error to stop execution.
-
-```js
-var Cluc = require('../index.js');
-    var dontCnt = 0;
-    var clucLine = (new Cluc())
-      .stream('node -v' , function(err,stdout,stderr){
-        if(err) log.error(err);
-        this.display();
-        this.mustnot(/12\.[0-9]/, 'It should not be v0.12.x.').or(function(reason, then){
-          dontCnt++;
-          reason.should.eql('It should not be v0.12.x.');
-          then(new Error(reason));
-        });
-      })
-      .stream('node -v' , function(err,stdout,stderr){
-        dontCnt++;
-      });
-    var ClucProcess = Cluc.transports.process;
-    (new ClucProcess()).run(clucLine, function(err){
-      dontCnt.should.eql(1);
-      done();
-    });
-```
-
-<a name="exec"></a>
-# exec
-execute once.
-
-```js
-var Cluc = require('../index.js');
-    var dontCnt = 0;
-    var clucLine = (new Cluc())
-      .exec('node -v' , function(err,stdout,stderr){
-        if(err) log.error(err);
-        this.display();
-        dontCnt++;
-      });
-    var ClucProcess = Cluc.transports.process;
-    (new ClucProcess()).run(clucLine, function(err){
-      dontCnt.should.eql(1);
-      if(err) return done(err);
-      done();
-    });
-```
-
-can fail and stop.
-
-```js
-var Cluc = require('../index.js');
-    var dontCnt = 0;
-    var clucLine = (new Cluc())
-      .exec('node -v' , function(err,stdout,stderr){
-        if(err) log.error(err);
-        this.display();
-        this.mustnot(/12\.[0-9]/, 'It should not be v0.12.x.').or(clucLine.die());
-        this.mustnot(/12\.[0-9]/, 'It should not be v0.12.x.').or(clucLine.die());
-        dontCnt++;
-      })
-      .stream('node -v' , function(err,stdout,stderr){
-        dontCnt++;
-      });
-    var ClucProcess = Cluc.transports.process;
-    (new ClucProcess()).run(clucLine, function(err){
-      dontCnt.should.not.eql(2);
-      dontCnt.should.eql(1);
-      (err===null).should.be.false;
-      done();
-    });
-```
-
-can redo on failure.
-
-```js
-var Cluc = require('../index.js');
-    var dontCnt = 0;
-    var clucLine = (new Cluc())
-      .exec('node -v' , function(err,stdout,stderr){
-        if(err) log.error(err);
-        this.display();
-        this.mustnot(/12\.[0-9]/, 'It should not be v0.12.x.');
-        this.mustnot(/12\.[0-9]/, 'It should not be v0.12.x.');
-        this.redo(2);
-        dontCnt++;
-      })
-      .stream('node -v' , function(err,stdout,stderr){
-        dontCnt++;
-      });
-    var ClucProcess = Cluc.transports.process;
-    (new ClucProcess()).run(clucLine, function(err){
-      dontCnt.should.eql(3);
-      (err===null).should.be.false;
-      done();
-    });
-```
-
