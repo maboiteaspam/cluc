@@ -1,6 +1,6 @@
 {
   "name": "cluc",
-  "version": "1.0.15",
+  "version": "1.0.16",
   "description": "command line under control",
   "main": "index.js",
   "repository": {
