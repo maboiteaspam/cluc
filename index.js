@@ -44,7 +44,7 @@ var Cluc = (function(){
     this.cmds.push(unit);
     return this;
   };
-  Cluc.prototype.wait = function(fn){
+  Cluc.prototype.wait = Cluc.prototype.then =function(fn){
     var unit = {fn:fn, t:'wait'};
     this.cmds.push(unit);
     return this;
@@ -110,7 +110,7 @@ var Cluc = (function(){
       message:message
     }, function(answers, next){
       then(answers.chosen);
-      process.nextTick(next);
+      if(next) next();
     });
   };
   Cluc.prototype.concat = function(other){
@@ -174,8 +174,11 @@ var Cluc = (function(){
 
           var execType = cmd.t;
 
+          // this else if seems not so terrible,
+          // good thing is,
+          // it let us use named function to contextualize errors
           if(execType.match(/(stream|tail)/)){
-            transport.stream(cmdStr, function(error, stderr, stdout, stdin){
+            transport.stream(cmdStr, function streamCmdFn(error, stderr, stdout, stdin){
 
               context.executeRules(error, stdout, stderr, stdin);
 
@@ -206,7 +209,7 @@ var Cluc = (function(){
             });
 
           }else if(execType=='string'){
-            transport.exec(cmdStr, function(error, stdout, stderr){
+            transport.exec(cmdStr, function execCmdFn(error, stdout, stderr){
               recordStream.write(stdout);
               recordStream.write(stderr);
               context.executeRules(error, stdout, stderr);
