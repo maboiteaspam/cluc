@@ -746,7 +746,7 @@ var ClucContext = (function(){
     if(_.isString(stdout)){
 
       try{
-        this.cmd.fn.call(this, error, stdout, stderr);
+        if(this.cmd.fn) this.cmd.fn.call(this, error, stdout, stderr);
       }catch(ex){
         throw ex; // shall it be voided?
       }
