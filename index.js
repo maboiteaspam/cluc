@@ -966,12 +966,12 @@ var ClucMust = (function(){
   var ClucMust = function(){};
   util.inherits(ClucMust, ClucRule);
   ClucMust.prototype.onceMatch = function(matched){
+    this.failed = false;
     log.success(' '+symbols.ok+' ', ''+(this.forgeErrorMessage() )+'' );
     console.log('');
   };
   ClucMust.prototype.onClose = function(matched){
     if(!matched && !this.hasMatchedOnce){
-      console.log(this);
       this.failed = true;
       log.warn(' '+symbols.err+' ', '\n'+' '+(this.forgeErrorMessage() )+'\n' );
     }
