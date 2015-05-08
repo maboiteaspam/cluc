@@ -974,7 +974,6 @@ var ClucMust = (function(){
     if(!matched && !this.hasMatchedOnce){
       this.failed = true;
       log.warn(' '+symbols.err+' ', '\n'+' '+(this.forgeErrorMessage() )+'\n' );
-      throw matched;
     }
   };
   return ClucMust;
