@@ -5,7 +5,7 @@ var inquirer = require('inquirer');
 var semver = require('semver');
 var fs = require('fs');
 
-var Cluc = require('./');
+var Cluc = require('cluc');
 
 var jsdox = {
   'index.js':'docs/'
@@ -136,6 +136,14 @@ inquirer.prompt([{
       this.display();
     });
   };
+
+  var jsDoc = function(from, to){
+    return line.stream('jsdoc '+from+' -d '+to+'', function(){
+      this.spinUntil(/.+/);
+      this.success('completed');
+      this.display();
+    });
+  };
   var mocha = function(reporter, to){
     return line.stream('mocha --reporter '+reporter+' > '+to, function(){
       this.spinUntil(null);
@@ -187,7 +195,7 @@ inquirer.prompt([{
 
     streamOrDie('cp '+projectPath+'/README.md .');
     Object.keys(jsdox).forEach(function(projectRelativePath){
-      jsDox(projectPath+'/'+projectRelativePath, jsdox[projectRelativePath]);
+      jsDoc(projectPath+'/'+projectRelativePath, jsdox[projectRelativePath]);
     });
 
     streamOrDie('cd '+projectPath);
