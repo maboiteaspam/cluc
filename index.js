@@ -792,7 +792,6 @@ var ClucContext = (function(){
           var matched = false;
           rules.forEach(function(rule){
             rule.close(matched);
-            console.log(rule)
             matched = rule.matched || matched;
             if(rule.hasFailed()) failedRules.push(rule);
             rule.stdin = null;
@@ -967,7 +966,6 @@ var ClucMust = (function(){
   var ClucMust = function(){};
   util.inherits(ClucMust, ClucRule);
   ClucMust.prototype.onceMatch = function(){
-    this.failed = false;
     log.success(' '+symbols.ok+' ', ''+(this.forgeErrorMessage() )+'' );
     console.log('');
   };
@@ -1010,7 +1008,7 @@ var ClucMustNot = (function(){
    */
   var ClucMustNot = function(){};
   util.inherits(ClucMustNot, ClucRule);
-  ClucMust.prototype.onceMatch = function(matched){
+  ClucMustNot.prototype.onceMatch = function(matched){
     this.failed = true;
     log.error(' '+symbols.err+' ', '\n'+(this.forgeErrorMessage() )+'\n' );
   };
