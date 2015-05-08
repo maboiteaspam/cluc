@@ -25,6 +25,9 @@ var named = require('named-regexp').named;
 
 var Cluc = (function(){
   /**
+   * Provide command line
+   * queuing, execution and response
+   *
    * @class
    */
   var Cluc = function(OutputHelper){
@@ -367,6 +370,8 @@ var SSH2Utils = require('ssh2-utils');
 var ssh = new SSH2Utils();
 var ClucSsh = (function(){
   /**
+   * Execute the commands on a remote machine over ssh
+   *
    * @class
    */
   var ClucSsh = function(OutputHelper){
@@ -467,6 +472,8 @@ var child_process = require('child_process');
 var fs = require('fs-extra');
 var ClucChildProcess = (function(){
   /**
+   * Executes commands on the local system
+   *
    * @class
    */
   var ClucChildProcess = function(OutputHelper){
@@ -640,6 +647,10 @@ Cluc.transports = {
 
 var ClucContext = (function(){
   /**
+   * Context of a command
+   * Helps to analyze and respond
+   * to the input stream from spawned process
+   *
    * @class
    */
   var ClucContext = function(){
@@ -856,6 +867,9 @@ Cluc.output = {
 
 var ClucRule = (function(){
   /**
+   * Test output against a pattern
+   * then save its states until the command has finished
+   *
    * @class
    */
   var ClucRule = function(){};
@@ -943,12 +957,20 @@ var ClucRule = (function(){
 
 var ClucMust = (function(){
   /**
+   * Displays success message
+   * if pattern matches
+   * Otherwise displays failure message
+   *
    * @class
    */
   var ClucMust = function(){};
   util.inherits(ClucMust, ClucRule);
+  ClucMust.prototype.onceMatch = function(matched){
+    log.success(' '+symbols.ok+' ', ''+(this.forgeErrorMessage() )+'' );
+    console.log('');
+  };
   ClucMust.prototype.onClose = function(matched){
-    if(!matched){
+    if(!matched && !this.hasMatchedOnce){
       this.failed = true;
       log.warn(' '+symbols.err+' ', '\n'+' '+(this.forgeErrorMessage() )+'\n' );
     }
@@ -958,6 +980,9 @@ var ClucMust = (function(){
 
 var ClucSuccess = (function(){
   /**
+   * Displays success message
+   * if pattern matches
+   *
    * @class
    */
   var ClucSuccess = function(){};
@@ -975,14 +1000,22 @@ var ClucSuccess = (function(){
 
 var ClucMustNot = (function(){
   /**
+   * Displays failure message
+   * if pattern matches
+   * Otherwise displays success message
+   *
    * @class
    */
   var ClucMustNot = function(){};
   util.inherits(ClucMustNot, ClucRule);
-  ClucMustNot.prototype.onData = function(matched){
-    if(matched){
-      this.failed = true;
-      log.error(' '+symbols.err+' ', '\n'+(this.forgeErrorMessage() )+'\n' );
+  ClucMust.prototype.onceMatch = function(matched){
+    this.failed = true;
+    log.error(' '+symbols.err+' ', '\n'+(this.forgeErrorMessage() )+'\n' );
+  };
+  ClucMustNot.prototype.onClose = function(matched){
+    if(!matched && !this.failed){
+      log.success(' '+symbols.ok+' ', ''+(this.forgeErrorMessage() )+'' );
+      console.log('');
     }
   };
   return ClucMustNot;
@@ -990,6 +1023,8 @@ var ClucMustNot = (function(){
 
 var ClucConfirm = (function(){
   /**
+   * Displays confirm message
+   * if pattern matches
    * @class
    */
   var ClucConfirm = function(){};
@@ -1007,6 +1042,8 @@ var ClucConfirm = (function(){
 
 var ClucWarn = (function(){
   /**
+   * Displays warning message
+   * if pattern matches
    * @class
    */
   var ClucWarn = function(){};
@@ -1020,13 +1057,15 @@ var ClucWarn = (function(){
 
 var ClucWatch = (function(){
   /**
+   * Displays the output
+   * When pattern matches
    * @class
    */
   var ClucWatch = function(){};
   util.inherits(ClucWatch, ClucRule);
   ClucWatch.prototype.onData = function(matched){
     if(matched){
-      log.watch('   ', this.forgeErrorMessage() );
+      log.watch('  |', this.forgeErrorMessage() );
     }
   };
   return ClucWatch;
@@ -1034,6 +1073,8 @@ var ClucWatch = (function(){
 
 var ClucSpin = (function(){
   /**
+   * Displays a spinner
+   * while pattern matches
    * @class
    */
   var ClucSpin = function(){};
@@ -1063,6 +1104,8 @@ var ClucSpin = (function(){
 
 var ClucSpinUntil = (function(){
   /**
+   * Displays a spinner
+   * until pattern matches
    * @class
    */
   var ClucSpinUntil = function(){
@@ -1088,6 +1131,8 @@ var ClucSpinUntil = (function(){
 
 var ClucProgress = (function(){
   /**
+   * Displays a progress
+   * while pattern matches
    * @class
    */
   var ClucProgress = function(){};
@@ -1119,6 +1164,8 @@ var ClucProgress = (function(){
 
 var ClucAnswer = (function(){
   /**
+   * Writes the stdin with provided answer
+   * When given pattern matches
    * @class
    */
   var ClucAnswer = function(){};
@@ -1135,6 +1182,8 @@ var ClucAnswer = (function(){
 
 var ClucDisplay = (function(){
   /**
+   * Displays the output
+   * When patterns has not previsouly matches
    * @class
    */
   var ClucDisplay = function(){};
@@ -1156,6 +1205,8 @@ var ClucDisplay = (function(){
 
 var ClucDieOnError = (function(){
   /**
+   * Throws an error
+   * When patterns match in stderr
    * @class
    */
   var ClucDieOnError = function(){};
