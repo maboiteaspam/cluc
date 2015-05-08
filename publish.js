@@ -112,7 +112,7 @@ inquirer.prompt([{
     var cmd = 'git status';
     return line.stream(cmd, function(){
       this.display();
-      this.must(/(est propre|is clean)/i,'Tree is unclean')
+      this.must(/(est propre|is clean)/i, 'Tree is unclean')
         .or(line.confirmToStop('%s, stop now ?', true));
     });
   };
