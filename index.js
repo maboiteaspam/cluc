@@ -770,7 +770,6 @@ var ClucContext = (function(){
 
       rules.forEach(function(rule){
         rule.close();
-        console.log(rule)
         if(rule.hasFailed()) failedRules.push(rule);
       });
 
@@ -793,6 +792,7 @@ var ClucContext = (function(){
           var matched = false;
           rules.forEach(function(rule){
             rule.close(matched);
+            console.log(rule)
             matched = rule.matched || matched;
             if(rule.hasFailed()) failedRules.push(rule);
             rule.stdin = null;
