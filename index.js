@@ -770,6 +770,7 @@ var ClucContext = (function(){
 
       rules.forEach(function(rule){
         rule.close();
+        console.log(rule)
         if(rule.hasFailed()) failedRules.push(rule);
       });
 
