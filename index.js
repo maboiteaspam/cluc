@@ -971,6 +971,7 @@ var ClucMust = (function(){
   };
   ClucMust.prototype.onClose = function(matched){
     if(!matched && !this.hasMatchedOnce){
+      console.log(this);
       this.failed = true;
       log.warn(' '+symbols.err+' ', '\n'+' '+(this.forgeErrorMessage() )+'\n' );
     }
