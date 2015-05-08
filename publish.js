@@ -111,9 +111,8 @@ inquirer.prompt([{
   var gitPreferCleanTree = function(){
     var cmd = 'git status';
     return line.stream(cmd, function(){
-      this.display();
-      this.must(/(est propre|is clean)/i, 'Tree is unclean')
-        .or(line.confirmToStop('%s, stop now ?', true));
+      this.must(/(est propre|is clean)/ig, 'Tree should be clean')
+        .or(line.confirmToStop('Tree is unclean, stop now ?', true));
     });
   };
   var gitCommit = function(cmd){
