@@ -965,7 +965,8 @@ var ClucMust = (function(){
    */
   var ClucMust = function(){};
   util.inherits(ClucMust, ClucRule);
-  ClucMust.prototype.onceMatch = function(matched){
+  ClucMust.prototype.onceMatch = function(){
+    this.failed = false;
     log.success(' '+symbols.ok+' ', ''+(this.forgeErrorMessage() )+'' );
     console.log('');
   };
@@ -973,6 +974,7 @@ var ClucMust = (function(){
     if(!matched && !this.hasMatchedOnce){
       this.failed = true;
       log.warn(' '+symbols.err+' ', '\n'+' '+(this.forgeErrorMessage() )+'\n' );
+      throw matched;
     }
   };
   return ClucMust;
