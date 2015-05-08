@@ -11,6 +11,7 @@ var jsdox = {
   'index.js':'docs/'
 };
 var releaseTypes = [
+  "same",
   "major",
   "premajor",
   "minor",
@@ -22,7 +23,7 @@ var releaseTypes = [
 var revision = pkg.version;
 
 releaseTypes.forEach(function(t, i){
-  var r = semver.inc(revision, t);
+  var r = t=="same"?revision:semver.inc(revision, t);
   releaseTypes[i] = ("_         " + t).slice(t.length)+' => '+r;
 });
 
@@ -164,7 +165,7 @@ inquirer.prompt([{
     gitAdd('-A');
     gitCommit('Publish '+releaseType+' '+revision);
     gitPush(sshUrl+' '+branch+'');
-    streamOrDie('npm publish');
+    streamDisplay('npm publish');
   };
 
 
@@ -179,10 +180,8 @@ inquirer.prompt([{
     streamOrDie('cd /tmp/'+pkg.name);
 
     gitClone(' '+sshUrl+' .');
-    gitCheckout('-b '+branch+' ');
-    streamOrDie('rm -fr ./*');
-    streamOrDie('rm -fr ./.giti*');
-    streamOrDie('rm -fr ./.tr*');
+    gitCheckout(''+branch+' ');
+    gitCheckout(' -b '+branch+' ');
     streamOrDie('ls -alh');
     gitStatus();
 
@@ -192,13 +191,14 @@ inquirer.prompt([{
     });
 
     streamOrDie('cd '+projectPath);
-    mocha('markdown', '/tmp/'+pkg.name+'/docs/test.md');
+    mocha('markdown', '/tmp/'+pkg.name+'/mocha-tests.md');
     streamOrDie('cd /tmp/'+pkg.name);
 
     gitAdd('-A');
     gitCommit('Generate doc '+releaseType+' '+revision);
 
     gitPush(''+sshUrl+' '+branch);
+    gitStatus();
 
     streamOrDie('cd '+projectPath);
     streamOrDie('rm -fr /tmp/'+pkg.name);
@@ -218,7 +218,7 @@ inquirer.prompt([{
   var revision = answers.release.match(/^\s*([a-z]+)\s*=>\s*(.+)$/i)[2];
 
   ensureFileContain('.gitignore', '\n.idea/\n');
-  ensureFileContain('.gitignore', '\ngithub.json/\n');
+  ensureFileContain('.gitignore', '\ngithub.json\n');
 
   releaseProject('master', __dirname, releaseType, revision);
   generateDocumentation('gh-pages', __dirname, releaseType, revision);
