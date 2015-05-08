@@ -5,7 +5,7 @@ var inquirer = require('inquirer');
 var semver = require('semver');
 var fs = require('fs');
 
-var Cluc = require('cluc');
+var Cluc = require('./');
 
 var jsdox = {
   'index.js':'docs/'
