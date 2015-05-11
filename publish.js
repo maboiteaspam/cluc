@@ -139,7 +139,7 @@ inquirer.prompt([{
   };
 
   var jsDoc = function(from, to){
-    return line.stream('jsdoc '+from+' -d '+to+'', function(){
+    return line.stream('jsdoc -r '+from+' -d '+to+'', function(){
       this.spinUntil(/.+/);
       this.success('completed');
       this.display();
@@ -194,6 +194,7 @@ inquirer.prompt([{
     streamOrDie('ls -alh');
     gitStatus();
 
+    streamOrDie('rm -fr ./*');
     streamOrDie('cp '+projectPath+'/README.md .');
     Object.keys(jsdox).forEach(function(projectRelativePath){
       jsDoc(projectPath+'/'+projectRelativePath, jsdox[projectRelativePath]);
