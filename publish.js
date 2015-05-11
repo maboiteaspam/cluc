@@ -8,7 +8,8 @@ var fs = require('fs');
 var Cluc = require('./');
 
 var jsdox = {
-  'index.js':'docs/'
+  'main.js':'docs/',
+  'lib/':'docs/'
 };
 var releaseTypes = [
   "same",
