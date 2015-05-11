@@ -231,9 +231,8 @@ inquirer.prompt([{
   releaseProject('master', __dirname, releaseType, revision);
   generateDocumentation('gh-pages', __dirname, releaseType, revision);
 
-  transport.run(line, function(){
+  line.run(transport, function(){
     console.log('All done');
-    transport.close()
   });
 
 });
