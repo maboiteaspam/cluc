@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Home</title>
+    <title>JSDoc: Source: cluc-ssh-context.js</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,32 +17,48 @@
 
 <div id="main">
 
-    <h1 class="page-title">Home</h1>
+    <h1 class="page-title">Source: cluc-ssh-context.js</h1>
 
     
 
 
 
     
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>
+var util = require('util');
+var ClucContext = require('./cluc-childprocess-context.js');
 
+var ClucSSHContext = (function(){
+  /**
+   * @class ClucSSHContext
+   */
+  var ClucSSHContext = function(server){
+    this.server = server || null;
+  };
 
-    <h3> </h3>
+  util.inherits(ClucSSHContext, ClucContext);
 
+  ClucSSHContext.prototype.is = function(search ){
+    return this.server &amp;&amp;
+      (
+      (!!this.server.hostname.match(search))
+      || (!!this.server.name &amp;&amp; this.server.name.match(search))
+      || (!!this.server.user &amp;&amp; this.server.user.match(search))
+      || (!!this.server.userName &amp;&amp; this.server.userName.match(search))
+      || (!!this.server.username.match(search))
+      )
+      ;
+  };
 
+  return ClucSSHContext;
+})();
 
-
-
-
-
-
-
-
-    
-
-
-
-
-
+module.exports = ClucSSHContext;
+</code></pre>
+        </article>
+    </section>
 
 
 
