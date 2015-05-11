@@ -8,7 +8,7 @@ with child_process
 ```js
     var Cluc = require('cluc');
 
-    var clucLine = (new Cluc())
+    new Cluc()
       .exec('ls -alh' , function(err,stdout,stderr){
         this.confirm(/vagrant/, 'Username should display on unix.');
         this.warn(/root/, 'Some files does not belong vagrant users.').or(function(err){
@@ -44,10 +44,11 @@ with child_process
         }).download('/home/vagrant/test', __dirname+'/fixtures/test.bashrc', function(err){
            if(err) log.error(err);
            
-        }).record(require('fs').createWriteStream('some/output.log'));;
-
-    var ClucProcess = Cluc.transports.process;
-    (new ClucProcess()).run(clucLine, done);
+        }).record(require('fs').createWriteStream('some/output.log'))
+        
+        .run( new Cluc.transports.process(), function(){
+          console.log('done');
+        });
 ```
 
 
@@ -56,7 +57,7 @@ with ssh
 ```js
     var Cluc = require('cluc');
 
-    var clucLine = (new Cluc(Cluc.output.ssh))
+    new Cluc()
       .exec('ls -alh' , function(err,stdout,stderr){
         this.confirm(/vagrant/, 'Username should display on unix.');
         this.warn(/root/, 'Some files does not belong vagrant users.');
@@ -65,10 +66,10 @@ with ssh
       .stream('ls -alh' , function(err,stdout,stderr){
         this.confirm(/vagrant/, 'Username should display on unix.');
         this.warn(/root/, 'Some files does not belong vagrant users.');
+      })
+      .run( new Cluc.transports.ssh(server), function(){
+        console.log('done');
       });
-    
-    var ClucSsh = Cluc.transports.ssh;
-    (new ClucSsh()).run(clucLine, server, done);
 ```
 
 # API

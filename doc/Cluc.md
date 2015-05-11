@@ -21,14 +21,12 @@ Cluc constructor.
 
 __Arguments__
 
-* `constructor` - A Cluc Output helper constructor, defaults to Cluc.output.process.
-
 __Examples__
 
 ```js
     var Cluc = require('cluc');
     
-    var clucLine = new Cluc(Cluc.output.process);
+    var clucLine = new Cluc();
 ```
 
 ---------------------------------------
@@ -56,9 +54,8 @@ __Examples__
 ```js
     var Cluc = require('cluc');
     
-    var clucLine = new Cluc();
-    
-    clucLine.stream('ls -alh', function(err, stdout, stderr){
+    new Cluc()
+    .stream('ls -alh', function(err, stdout, stderr){
         if(err) log.error(err);
         stderr.on('data',function(d){
           log.error(''+d)
@@ -69,6 +66,9 @@ __Examples__
         stdout.on('close',function(){
           log.info('done')
         });
+    })
+    .run(new Cluc.transports.process(), function(err){
+      if(err) return done(err);
     });
 ```
 
@@ -97,13 +97,15 @@ __Examples__
 ```js
     var Cluc = require('cluc');
     
-    var clucLine = new Cluc();
-    
-    clucLine.exec('ls -alh', function(err, stdout, stderr){
+    new Cluc()
+    .exec('ls -alh', function(err, stdout, stderr){
         if(err) log.error(err);
         if(stderr) log.error(stderr)
         log.verbose(stdout)
         log.info('done')
+    })
+    .run(new Cluc.transports.process(), function(err){
+      if(err) return done(err);
     });
 ```
 
@@ -128,9 +130,8 @@ __Examples__
 ```js
     var Cluc = require('cluc');
     
-    var clucLine = new Cluc();
-    
-    clucLine.exec('ls -alh', function(err, stdout, stderr){
+    new Cluc()
+    .exec('ls -alh', function(err, stdout, stderr){
         if(err) log.error(err);
         if(stderr) log.error(stderr)
         log.verbose(stdout)
@@ -141,9 +142,10 @@ __Examples__
                 keepGoing();
             },2000);
         });
+    })
+    .run(new Cluc.transports.process(), function(err){
+      if(err) return done(err);
     });
-    
-    (new Cluc()).append(clucLine);
 ```
 
 ---------------------------------------
@@ -167,9 +169,8 @@ __Examples__
 ```js
     var Cluc = require('cluc');
     
-    var clucLine = new Cluc();
-    
-    clucLine.exec('ls -alh', function(err, stdout, stderr){
+    new Cluc()
+    .exec('ls -alh', function(err, stdout, stderr){
         if(err) log.error(err);
         if(stderr) log.error(stderr)
         log.verbose(stdout)
@@ -180,6 +181,9 @@ __Examples__
                 keepGoing();
             },2000);
         });
+    })
+    .run(new Cluc.transports.process(), function(err){
+      if(err) return done(err);
     });
 ```
 
@@ -206,9 +210,8 @@ __Examples__
 ```js
     var Cluc = require('cluc');
     
-    var clucLine = new Cluc();
-    
-    clucLine.stream('ls -alh', function(err, stdout, stderr){
+    new Cluc()
+    .stream('ls -alh', function(err, stdout, stderr){
         if(err) log.error(err);
         stderr.on('data',function(d){
           log.error(''+d)
@@ -225,9 +228,8 @@ __Examples__
       if(stderr) log.error(stderr)
       log.verbose(stdout)
       log.info('done')
-    });
-
-    (new ClucProcess()).run(clucLine, function(err){
+    })
+    .run(new Cluc.transports.process(), function(err){
       if(err) return done(err);
     });
 ```

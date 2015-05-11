@@ -24,8 +24,12 @@ __Examples__
 ```js
     var Cluc = require('cluc');
     
-    (new Cluc(new Cluc.output.process() ) ).exec('ls -alh', function(err, stdout, stderr, conn){
+    new Cluc()
+    .exec('ls -alh', function(err, stdout, stderr, conn){
         this.must(/some/, 'some is not shown');
+    })
+    .run(new Cluc.transports.process(), function(err){
+      if(err) return done(err);
     });
 ```
 
@@ -52,8 +56,12 @@ __Examples__
 ```js
     var Cluc = require('cluc');
     
-    (new Cluc()).exec('ls -alh', function(err, stdout, stderr, conn){
+    new Cluc()
+    .exec('ls -alh', function(err, stdout, stderr, conn){
         this.must(/some/, 'some is not shown');
+    })
+    .run(new Cluc.transports.process(), function(err){
+      if(err) return done(err);
     });
 ```
 
@@ -79,8 +87,12 @@ __Examples__
 ```js
     var Cluc = require('cluc');
     
-    (new Cluc()).exec('ls -alh', function(err, stdout, stderr, conn){
+    new Cluc()
+    .exec('ls -alh', function(err, stdout, stderr, conn){
         this.must(/some/, 'some is not shown');
+    })
+    .run(new Cluc.transports.process(), function(err){
+      if(err) return done(err);
     });
 ```
 
@@ -106,8 +118,12 @@ __Examples__
 ```js
     var Cluc = require('cluc');
     
-    (new Cluc()).exec('ls -alh', function(err, stdout, stderr, conn){
+    new Cluc()
+    .exec('ls -alh', function(err, stdout, stderr, conn){
         this.must(/some/, 'some is not shown');
+    })
+    .run(new Cluc.transports.process(), function(err){
+      if(err) return done(err);
     });
 ```
 
@@ -133,8 +149,12 @@ __Examples__
 ```js
     var Cluc = require('cluc');
     
-    (new Cluc()).exec('ls -alh', function(err, stdout, stderr, conn){
+    new Cluc()
+    .exec('ls -alh', function(err, stdout, stderr, conn){
         this.confirm(/some/, 'some is shown');
+    })
+    .run(new Cluc.transports.process(), function(err){
+      if(err) return done(err);
     });
 ```
 
@@ -160,8 +180,12 @@ __Examples__
 ```js
     var Cluc = require('cluc');
     
-    (new Cluc()).exec('ls -alh', function(err, stdout, stderr, conn){
+    new Cluc()
+    .exec('ls -alh', function(err, stdout, stderr, conn){
         this.must(/some/, 'some is not shown');
+    })
+    .run(new Cluc.transports.process(), function(err){
+      if(err) return done(err);
     });
 ```
 
@@ -187,8 +211,12 @@ __Examples__
 ```js
     var Cluc = require('cluc');
     
-    (new Cluc()).exec('ls -alh', function(err, stdout, stderr, conn){
+    new Cluc()
+    .exec('ls -alh', function(err, stdout, stderr, conn){
         this.must(/some/, 'some is not shown');
+    })
+    .run(new Cluc.transports.process(), function(err){
+      if(err) return done(err);
     });
 ```
 
@@ -213,8 +241,12 @@ __Examples__
 ```js
     var Cluc = require('cluc');
     
-    (new Cluc()).exec('ls -alh', function(err, stdout, stderr, conn){
+    new Cluc()
+    .exec('ls -alh', function(err, stdout, stderr, conn){
         this.answer(/Would you like to continue \?/, 'yes');
+    })
+    .run(new Cluc.transports.process(), function(err){
+      if(err) return done(err);
     });
 ```
 
@@ -237,8 +269,12 @@ __Examples__
 ```js
     var Cluc = require('cluc');
     
-    (new Cluc()).exec('ls -alh', function(err, stdout, stderr, conn){
+    new Cluc()
+    .exec('ls -alh', function(err, stdout, stderr, conn){
         this.display();
+    })
+    .run(new Cluc.transports.process(), function(err){
+      if(err) return done(err);
     });
 ```
 

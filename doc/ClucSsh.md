@@ -49,11 +49,8 @@ __Examples__
 ```js
     var Cluc = require('cluc');
     
-    var clucLine = new Cluc(Cluc.output.ssh);
-    
-    var ClucSsh = Cluc.transports.ssh;
-    var ssh = new ClucSsh(conn)
-    ssh.run(clucLine, server, function(err){
+    new Cluc()
+    .run(new Cluc.transports.ssh(server), function(err){
       if(err) return done(err);
     });
 ```
@@ -84,9 +81,8 @@ __Examples__
 ```js
     var Cluc = require('cluc');
     
-    var clucLine = new Cluc(Cluc.output.ssh);
-    
-    clucLine.stream('ls -alh', function(err, stdout, stderr, stdin, conn){
+    new Cluc()
+    .stream('ls -alh', function(err, stdout, stderr, stdin, conn){
         if(err) log.error(err);
         stderr.on('data',function(d){
           log.error(''+d)
@@ -97,11 +93,8 @@ __Examples__
         stdout.on('close',function(){
           log.info('done')
         });
-    });
-    
-    var ClucSsh = Cluc.transports.ssh;
-    var ssh = new ClucSsh(conn)
-    ssh.run(clucLine, server, function(err){
+    })
+    .run(new Cluc.transports.ssh(server), function(err){
       if(err) return done(err);
     });
 ```
@@ -131,18 +124,14 @@ __Examples__
 ```js
     var Cluc = require('cluc');
     
-    var clucLine = new Cluc(Cluc.output.ssh);
-    
-    clucLine.exec('ls -alh', function(err, stdout, stderr, conn){
+    new Cluc()
+    .exec('ls -alh', function(err, stdout, stderr, conn){
         if(err) log.error(err);
         if(stderr) log.error(stderr)
         log.verbose(stdout)
         log.info('done')
-    });
-    
-    var ClucSsh = Cluc.transports.ssh;
-    var ssh = new ClucSsh(conn)
-    ssh.run(clucLine, server, function(err){
+    })
+    .run(new Cluc.transports.ssh(server), function(err){
       if(err) return done(err);
     });
 ```

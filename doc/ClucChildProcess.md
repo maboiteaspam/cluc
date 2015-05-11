@@ -22,7 +22,8 @@ __Examples__
 ```js
     var Cluc = require('cluc');
     var ClucChildProcess = Cluc.transports.process;
-    clucLine.run(new ClucChildProcess())
+    
+    new Cluc().run(new ClucChildProcess());
 ```
 
 ---------------------------------------
@@ -50,9 +51,8 @@ __Examples__
 ```js
     var Cluc = require('cluc');
     
-    var clucLine = new Cluc();
-    
-    clucLine.exec('ls -alh', function(err, stdout, stderr, conn){
+    new Cluc()
+    .exec('ls -alh', function(err, stdout, stderr, conn){
         if(err) log.error(err);
         stderr.on('data',function(d){
           log.error(''+d)
@@ -63,9 +63,8 @@ __Examples__
         stdout.on('close',function(){
           log.info('done')
         });
-    });
-
-    (new ClucProcess()).run(clucLine, function(err){
+    })
+    .run(new Cluc.transports.process(), function(err){
       if(err) return done(err);
     });
 ```
@@ -95,16 +94,14 @@ __Examples__
 ```js
     var Cluc = require('cluc');
     
-    var clucLine = new Cluc();
-    
-    clucLine.exec('ls -alh', function(err, stdout, stderr, conn){
+    new Cluc()
+    .exec('ls -alh', function(err, stdout, stderr, conn){
         if(err) log.error(err);
         if(stderr) log.error(stderr)
         log.verbose(stdout)
         log.info('done')
-    });
-    
-    (new ClucProcess()).run(clucLine, function(err){
+    })
+    .run(new Cluc.transports.process(), function(err){
       if(err) return done(err);
     });
 ```

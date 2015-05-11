@@ -30,84 +30,168 @@ var Cluc = (function(){
    *
    * @class
    */
-  var Cluc = function(OutputHelper){
+  var Cluc = function(){
     this.cmds = [];
-    this.OutputHelper = OutputHelper || Cluc.output.process;
     this.recordStream = through();
   };
+  /**
+   *
+   * @param cmd
+   * @param fn
+   * @returns {Cluc}
+   */
   Cluc.prototype.stream = function(cmd,fn){
     var unit = {cmd:cmd, fn:fn, t:'stream',s:null};
     this.cmds.push(unit);
     return this;
   };
+  /**
+   *
+   * @param cmd
+   * @param fn
+   * @returns {Cluc}
+   */
   Cluc.prototype.tail = function(cmd,fn){
     var unit = {cmd:cmd, fn:fn, t:'tail',s:null};
     this.cmds.push(unit);
     return this;
   };
+  /**
+   *
+   * @param cmd
+   * @param fn
+   * @returns {Cluc}
+   */
   Cluc.prototype.exec = function(cmd,fn){
     var unit = {cmd:cmd, fn:fn, t:'string',s:null};
     this.cmds.push(unit);
     return this;
   };
+  /**
+   *
+   * @type {Function}
+   */
   Cluc.prototype.wait = Cluc.prototype.then =function(fn){
     var unit = {fn:fn, t:'wait'};
     this.cmds.push(unit);
     return this;
   };
+  /**
+   *
+   * @param fromPath
+   * @param toPath
+   * @param fn
+   * @returns {Cluc}
+   */
   Cluc.prototype.copy = function(fromPath, toPath, fn){
     var unit = {cmd:'copy %s to %s', fn:fn, t:'copy', fp:fromPath, tp:toPath};
     unit.cmd = _s.sprintf(unit.cmd,unit.fp,unit.tp);
     this.cmds.push(unit);
     return this;
   };
+  /**
+   *
+   * @param fromPath
+   * @param toPath
+   * @param fn
+   * @returns {Cluc}
+   */
   Cluc.prototype.download = function(fromPath, toPath, fn){
     var unit = {cmd:'download %s to %s', fn:fn, t:'download', fp:fromPath, tp:toPath};
     unit.cmd = _s.sprintf(unit.cmd,unit.fp,unit.tp);
     this.cmds.push(unit);
     return this;
   };
+  /**
+   *
+   * @param path
+   * @param fn
+   * @returns {Cluc}
+   */
   Cluc.prototype.emptyDir = function(path, fn){
     var unit = {cmd:'emptyDir %s', fn:fn, t:'emptyDir', p:path};
     unit.cmd = _s.sprintf(unit.cmd,path);
     this.cmds.push(unit);
     return this;
   };
+  /**
+   *
+   * @param path
+   * @param fn
+   * @returns {Cluc}
+   */
   Cluc.prototype.mkdir = function(path, fn){
     var unit = {cmd:'mkdir %s', fn:fn, t:'mkdir', p:path};
     unit.cmd = _s.sprintf(unit.cmd,path);
     this.cmds.push(unit);
     return this;
   };
+  /**
+   *
+   * @param path
+   * @param fn
+   * @returns {Cluc}
+   */
   Cluc.prototype.rmdir = function(path, fn){
     var unit = {cmd:'rmdir %s', fn:fn, t:'rmdir', p:path};
     unit.cmd = _s.sprintf(unit.cmd,path);
     this.cmds.push(unit);
     return this;
   };
+  /**
+   *
+   * @param localPath
+   * @param remotePath
+   * @param fn
+   * @returns {Cluc}
+   */
   Cluc.prototype.putDir = function(localPath, remotePath, fn){
     var unit = {cmd:'putDir %s %s', fn:fn, t:'putDir', lp:localPath, rp:remotePath};
     unit.cmd = _s.sprintf(unit.cmd, localPath, remotePath);
     this.cmds.push(unit);
     return this;
   };
+  /**
+   *
+   * @param path
+   * @param content
+   * @param fn
+   * @returns {Cluc}
+   */
   Cluc.prototype.writeFile = function(path, content, fn){
     var unit = {cmd:'writeFile %s', fn:fn, t:'writeFile', p:path, c:content};
     unit.cmd = _s.sprintf(unit.cmd,path);
     this.cmds.push(unit);
     return this;
   };
+  /**
+   *
+   * @returns {Cluc}
+   */
   Cluc.prototype.title = function(){
     var args = Array.prototype.slice.call(arguments);
     var unit = { t:'title', d:args };
     this.cmds.push(unit);
     return this;
   };
+  /**
+   *
+   * @param options
+   * @param fn
+   * @returns {Cluc}
+   */
   Cluc.prototype.ask = function(options, fn){
     var unit = {fn: fn, t:'ask', d:options };
     this.cmds.push(unit);
     return this;
   };
+  /**
+   *
+   * @param message
+   * @param choices
+   * @param then
+   * @returns {*}
+   */
   Cluc.prototype.choose = function(message, choices, then){
     return this.ask({
       name:'chosen',
@@ -119,6 +203,11 @@ var Cluc = (function(){
       if(next) next();
     });
   };
+  /**
+   *
+   * @param other
+   * @returns {Cluc}
+   */
   Cluc.prototype.concat = function(other){
     if(other instanceof Cluc ){
       this.cmds = this.cmds.concat(other.cmds);
@@ -127,7 +216,13 @@ var Cluc = (function(){
     }
     return this;
   };
-  Cluc.prototype.run = function(transport, then){
+  /**
+   *
+   * @param transport
+   * @param then
+   * @returns {boolean}
+   */
+  Cluc.prototype.executeComands = function(transport, then){
     var that = this;
     var cmds = that.cmds;
     var recordStream = that.recordStream;
@@ -302,6 +397,31 @@ var Cluc = (function(){
 
     return false;
   };
+  /**
+   *
+   * @param transport
+   * @param then
+   * @returns {Cluc}
+   */
+  Cluc.prototype.run = function(transport, then){
+    var that = this;
+    process.nextTick(function(){
+      transport.open(function(err){
+        if(err) throw err;
+        that.executeComands(transport, function(err){
+          transport.close(function(){
+            if(then) then(err);
+          });
+        });
+      });
+    })
+    return this;
+  };
+  /**
+   *
+   * @param err
+   * @returns {Function}
+   */
   Cluc.prototype.die = function(err){
     if(!err){
       err = new Error();
@@ -321,6 +441,12 @@ var Cluc = (function(){
       then(err);
     }
   };
+  /**
+   *
+   * @param message
+   * @param def
+   * @returns {Function}
+   */
   Cluc.prototype.confirmToProceed = function(message, def){
     var that = this;
     message = (message||'%s, do you prefer to proceed ?');
@@ -340,6 +466,12 @@ var Cluc = (function(){
       });
     }
   };
+  /**
+   *
+   * @param message
+   * @param def
+   * @returns {Function}
+   */
   Cluc.prototype.confirmToStop = function(message, def){
     var that = this;
     message = (message||'%s, do you prefer to stop ?');
@@ -359,6 +491,11 @@ var Cluc = (function(){
       });
     }
   };
+  /**
+   *
+   * @param writeStream
+   * @returns {Cluc}
+   */
   Cluc.prototype.record = function(writeStream){
     this.recordStream = writeStream;
     return this;
@@ -374,11 +511,11 @@ var ClucSsh = (function(){
    *
    * @class
    */
-  var ClucSsh = function(OutputHelper){
+  var ClucSsh = function(server, OutputHelper){
     this.cmds = [];
     this.shell = null;
     this.server = null;
-    this.OutputHelper = OutputHelper || Cluc.output.process;
+    this.OutputHelper = OutputHelper || Cluc.output.ssh;
   };
   ClucSsh.prototype.createContext = function(){
     return new (this.OutputHelper)(this.server);
@@ -417,19 +554,6 @@ var ClucSsh = (function(){
     ssh.writeFile(this.shell, path, content, then);
   };
 
-  ClucSsh.prototype.run = function(clucLine, server, then){
-    var that = this;
-    that.open(server, function(err){
-      if(err) throw err;
-      clucLine.run(that, function(err){
-        process.nextTick(function(){
-          that.close(function(){
-            if(then) then(err);
-          });
-        });
-      });
-    });
-  };
   ClucSsh.prototype.open = function(server, then){
     var that = this;
     if(!this.shell){
@@ -539,12 +663,14 @@ var ClucChildProcess = (function(){
     var stdout = '';
     var stderr = '';
     var finish = function(){
-      debug('finish')
-      then(null, stdout, stderr, procesStream);
-      that.shell.stdout.removeListener('data', saveStdout);
-      that.shell.stderr.removeListener('data', saveStderr);
-      procesStream.emit('close');
-      procesStream.removeAllListeners('close');
+      if(that.shell){
+        debug('finish');
+        that.shell.stdout.removeListener('data', saveStdout);
+        that.shell.stderr.removeListener('data', saveStderr);
+        procesStream.emit('close');
+        procesStream.removeAllListeners('close');
+        then(null, stdout, stderr, procesStream);
+      }
     };
     var saveStdout = function(d){
       debug(''+d);
@@ -595,19 +721,6 @@ var ClucChildProcess = (function(){
   };
   ClucChildProcess.prototype.writeFile = function(path, content, then){
     fs.writeFile(path, content, then);
-  };
-  ClucChildProcess.prototype.run = function(clucLine, then){
-    var that = this;
-    that.open(function(err){
-      if(err) throw err;
-      clucLine.run(that, function(err){
-        process.nextTick(function(){
-          that.close(function(){
-            if(then) then(err);
-          });
-        });
-      });
-    });
   };
   ClucChildProcess.prototype.open = function(then){
     if(!this.shell){

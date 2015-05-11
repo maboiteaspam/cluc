@@ -10,6 +10,8 @@ var log = require('npmlog');
 var Vagrant = require('node-vagrant-bin');
 
 var servers = require('./vagrant.json');
+var Cluc = require('../index.js');
+var ClucProcess = Cluc.transports.process;
 
 var vagrant = new Vagrant();
 var hasBooted = true;
@@ -218,73 +220,63 @@ after(function(done){
 describe('stream', function(){
   this.timeout(50000);
   it('execute once', function(done){
+    var doneCnt = 0;
 
-    var Cluc = require('../index.js');
-
-    var dontCnt = 0;
-    var clucLine = (new Cluc())
-      .stream('node -v' , function(err,stdout,stderr){
+    (new Cluc())
+      .stream('node -v' , function(err){
         if(err) log.error(err);
         this.display();
-        dontCnt++;
-      });
+        doneCnt++;
 
-    var ClucProcess = Cluc.transports.process;
-    (new ClucProcess()).run(clucLine, function(err){
-      dontCnt.should.eql(1);
-      if(err) return done(err);
-      done();
-    });
+      }).run(new ClucProcess(), function(err){
+        doneCnt.should.eql(1);
+        if(err) return done(err);
+        done();
+      });
   });
   it('can fail and stop', function(done){
 
-    var Cluc = require('../index.js');
+    var doneCnt = 0;
 
-    var dontCnt = 0;
     var clucLine = (new Cluc())
       .stream('node -v' , function(err,stdout,stderr){
         if(err) log.error(err);
         this.display();
         this.mustnot(/12\.[0-9]/, 'It should not be v0.12.x.').or(clucLine.die());
         this.mustnot(/12\.[0-9]/, 'It should not be v0.12.x.').or(clucLine.die());
-        dontCnt++;
-      })
-      .stream('node -v' , function(err,stdout,stderr){
-        dontCnt++;
-      });
+        doneCnt++;
 
-    var ClucProcess = Cluc.transports.process;
-    (new ClucProcess()).run(clucLine, function(err){
-      dontCnt.should.not.eql(2);
-      dontCnt.should.eql(1);
-      (err===null).should.be.false;
-      done();
-    });
+      }).stream('node -v' , function(){
+        doneCnt++;
+
+      }).run(new ClucProcess(), function(err){
+        doneCnt.should.not.eql(2);
+        doneCnt.should.eql(1);
+        (err===null).should.be.false;
+        done();
+      });
   });
   it('can redo on failure', function(done){
 
-    var Cluc = require('../index.js');
-
-    var dontCnt = 0;
-    var clucLine = (new Cluc())
+    var doneCnt = 0;
+    (new Cluc())
       .stream('node -v' , function(err,stdout,stderr){
         if(err) log.error(err);
         this.display();
         this.mustnot(/12\.[0-9]/, 'It should not be v0.12.x.');
         this.mustnot(/12\.[0-9]/, 'It should not be v0.12.x.');
         this.redo(2);
-        dontCnt++;
-      })
-      .stream('node -v' , function(err,stdout,stderr){
-        dontCnt++;
+        doneCnt++;
+
+      }).stream('node -v' , function(err,stdout,stderr){
+        doneCnt++;
+
+      }).run(new ClucProcess(), function(err){
+        doneCnt.should.eql(3);
+        (err===null).should.be.false;
+        done();
       });
 
-    var ClucProcess = Cluc.transports.process;
-    (new ClucProcess()).run(clucLine, function(err){
-      dontCnt.should.eql(3);
-      (err===null).should.be.false;
-      done();
-    });
   });
 });
 
@@ -292,9 +284,8 @@ describe('tail', function(){
   this.timeout(50000);
   it('file', function(done){
 
-    var Cluc = require('../index.js');
+    var doneCnt = 0;
 
-    var dontCnt = 0;
     var clucLine = (new Cluc())
       .tail('sudo tail -f /var/log/messages -n 50' , function(err,stdout,stderr){
         if(err) log.error(err);
@@ -302,15 +293,14 @@ describe('tail', function(){
         clucLine.wait((function(fn){
           setTimeout(fn, 2500);
         }));
-        dontCnt++;
+        doneCnt++;
+
+      }).run(new ClucProcess(), function(err){
+        doneCnt.should.eql(1);
+        if(err) return done(err);
+        done();
       });
 
-    var ClucProcess = Cluc.transports.process;
-    (new ClucProcess()).run(clucLine, function(err){
-      dontCnt.should.eql(1);
-      if(err) return done(err);
-      done();
-    });
   });
 });
 
@@ -318,50 +308,44 @@ describe('orfn', function(){
   this.timeout(50000);
   it('can execute on rule failure', function(done){
 
-    var Cluc = require('../index.js');
-
-    var dontCnt = 0;
-    var clucLine = (new Cluc())
+    var doneCnt = 0;
+    (new Cluc())
       .stream('node -v' , function(err,stdout,stderr){
         if(err) log.error(err);
         this.display();
         this.mustnot(/12\.[0-9]/, 'It should not be v0.12.x.').or(function(reason, then){
-          dontCnt++;
+          doneCnt++;
           reason.should.eql('It should not be v0.12.x.');
           then();
         });
+
+      }).run(new ClucProcess(), function(err){
+        doneCnt.should.eql(1);
+        done();
       });
 
-    var ClucProcess = Cluc.transports.process;
-    (new ClucProcess()).run(clucLine, function(err){
-      dontCnt.should.eql(1);
-      done();
-    });
   });
   it('can return an error to stop execution', function(done){
 
-    var Cluc = require('../index.js');
-
-    var dontCnt = 0;
-    var clucLine = (new Cluc())
+    var doneCnt = 0;
+    (new Cluc())
       .stream('node -v' , function(err,stdout,stderr){
         if(err) log.error(err);
         this.display();
         this.mustnot(/12\.[0-9]/, 'It should not be v0.12.x.').or(function(reason, then){
-          dontCnt++;
+          doneCnt++;
           reason.should.eql('It should not be v0.12.x.');
           then(new Error(reason));
         });
-      })
-      .stream('node -v' , function(err,stdout,stderr){
-        dontCnt++;
+
+      }).stream('node -v' , function(err,stdout,stderr){
+        doneCnt++;
+
+      }).run(new ClucProcess(), function(err){
+        doneCnt.should.eql(1);
+        done();
       });
 
-    var ClucProcess = Cluc.transports.process;
-    (new ClucProcess()).run(clucLine, function(err){
-      dontCnt.should.eql(1);
-      done();
-    });
   });
 });
 
@@ -369,73 +353,93 @@ describe('exec', function(){
   this.timeout(50000);
   it('execute once', function(done){
 
-    var Cluc = require('../index.js');
-
-    var dontCnt = 0;
-    var clucLine = (new Cluc())
+    var doneCnt = 0;
+    (new Cluc())
       .exec('node -v' , function(err,stdout,stderr){
         if(err) log.error(err);
         this.display();
-        dontCnt++;
-      });
+        doneCnt++;
 
-    var ClucProcess = Cluc.transports.process;
-    (new ClucProcess()).run(clucLine, function(err){
-      dontCnt.should.eql(1);
-      if(err) return done(err);
-      done();
-    });
+      }).run(new ClucProcess(), function(err){
+        doneCnt.should.eql(1);
+        if(err) return done(err);
+        done();
+      });
   });
   it('can fail and stop', function(done){
 
     var Cluc = require('../index.js');
 
-    var dontCnt = 0;
+    var doneCnt = 0;
     var clucLine = (new Cluc())
       .exec('node -v' , function(err,stdout,stderr){
         if(err) log.error(err);
         this.display();
         this.mustnot(/12\.[0-9]/, 'It should not be v0.12.x.').or(clucLine.die());
         this.mustnot(/12\.[0-9]/, 'It should not be v0.12.x.').or(clucLine.die());
-        dontCnt++;
-      })
-      .stream('node -v' , function(err,stdout,stderr){
-        dontCnt++;
-      });
+        doneCnt++;
 
-    var ClucProcess = Cluc.transports.process;
-    (new ClucProcess()).run(clucLine, function(err){
-      dontCnt.should.not.eql(2);
-      dontCnt.should.eql(1);
-      (err===null).should.be.false;
-      done();
-    });
+      }).stream('node -v' , function(err,stdout,stderr){
+        doneCnt++;
+
+      }).run(new ClucProcess(), function(err){
+        doneCnt.should.not.eql(2);
+        doneCnt.should.eql(1);
+        (err===null).should.be.false;
+        done();
+      });
   });
   it('can redo on failure', function(done){
 
-    var Cluc = require('../index.js');
-
-    var dontCnt = 0;
-    var clucLine = (new Cluc())
-      .exec('node -v' , function(err,stdout,stderr){
+    var doneCnt = 0;
+    (new Cluc())
+      .exec('node -v' , function(err){
         if(err) log.error(err);
         this.display();
         this.mustnot(/12\.[0-9]/, 'It should not be v0.12.x.');
         this.mustnot(/12\.[0-9]/, 'It should not be v0.12.x.');
         this.redo(2);
-        dontCnt++;
-      })
-      .stream('node -v' , function(err,stdout,stderr){
-        dontCnt++;
+        doneCnt++;
+
+      }).stream('node -v' , function(err,stdout,stderr){
+        doneCnt++;
+
+      }).run(new ClucProcess(), function(err){
+        doneCnt.should.eql(3);
+        (err===null).should.be.false;
+        done();
       });
 
-    var ClucProcess = Cluc.transports.process;
-    (new ClucProcess()).run(clucLine, function(err){
-      dontCnt.should.eql(3);
-      (err===null).should.be.false;
-      done();
-    });
   });
 });
 
 
+describe('then', function(){
+  this.timeout(50000);
+  it('then', function(done){
+
+    var hasThen = '';
+    var doneCnt = 0;
+   (new Cluc())
+      .exec('node -v' , function(err, stdout, stderr){
+        if(err) log.error(err);
+        this.display();
+        doneCnt++;
+
+      }).then(function(next){
+        hasThen += 'has';
+        next();
+
+      }).then(function(next){
+        hasThen += 'Then';
+        next();
+
+      }).run(new ClucProcess(), function(err){
+        doneCnt.should.eql(1);
+        hasThen.should.eql('hasThen');
+        if(err) return done(err);
+        done();
+      });
+
+  });
+});
