@@ -2,7 +2,7 @@
   "name": "cluc",
   "version": "1.0.22",
   "description": "command line under control",
-  "main": "index.js",
+  "main": "main.js",
   "repository": {
     "type": "git",
     "url": "http://github.com/maboiteaspam/cluc.git"

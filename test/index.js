@@ -10,7 +10,7 @@ var log = require('npmlog');
 var Vagrant = require('node-vagrant-bin');
 
 var servers = require('./vagrant.json');
-var Cluc = require('../index.js');
+var Cluc = require('../');
 var ClucProcess = Cluc.transports.process;
 
 var vagrant = new Vagrant();
@@ -28,8 +28,8 @@ before(function(done){
         }
         done(err);
       });
-      box.stdout.on('data', function(d){process.stdout.write(''+d)});
-      box.stderr.on('data', function(d){process.stdout.write(''+d)});
+      //box.stdout.on('data', function(d){process.stdout.write(''+d)});
+      //box.stderr.on('data', function(d){process.stdout.write(''+d)});
     }else{
       log.info('Machine already running '+running);
       hasBooted = false;
@@ -46,8 +46,8 @@ after(function(done){
           console.log('done !');
           done();
         });
-        box.stdout.on('data', function(d){process.stdout.write(''+d)});
-        box.stderr.on('data', function(d){process.stdout.write(''+d)});
+        //box.stdout.on('data', function(d){process.stdout.write(''+d)});
+        //box.stderr.on('data', function(d){process.stdout.write(''+d)});
       } else {
         log.info('Machine won t be shutdown');
         done();
@@ -367,8 +367,6 @@ describe('exec', function(){
       });
   });
   it('can fail and stop', function(done){
-
-    var Cluc = require('../index.js');
 
     var doneCnt = 0;
     var clucLine = (new Cluc())
