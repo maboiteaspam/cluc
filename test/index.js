@@ -6,12 +6,14 @@ process.env['NPM_LOG'] = process.env['NPM_LOG']
 ;
 
 require('should');
+var fs = require('fs-extra');
 var log = require('npmlog');
 var Vagrant = require('node-vagrant-bin');
 
 var servers = require('./vagrant.json');
 var Cluc = require('../');
 var ClucProcess = Cluc.transports.process;
+var ClucSSh = Cluc.transports.ssh;
 
 var vagrant = new Vagrant();
 var hasBooted = true;
@@ -54,6 +56,7 @@ after(function(done){
       }
     });
   });
+
 //
 //describe('cluc', function(){
 //  this.timeout(50000);
@@ -216,6 +219,15 @@ after(function(done){
 //  });
 //
 //});
+
+
+var fixturePath = __dirname+'/fixtures';
+
+before(function(done){
+  fs.mkdirs(fixturePath, function(){
+    done();
+  })
+});
 
 describe('stream', function(){
   this.timeout(50000);
@@ -411,7 +423,6 @@ describe('exec', function(){
   });
 });
 
-
 describe('then', function(){
   this.timeout(50000);
   it('then', function(done){
@@ -439,5 +450,145 @@ describe('then', function(){
         done();
       });
 
+  });
+});
+
+describe('mkdir', function(){
+  it('creates a local directory', function(done){
+    var doneCnt = 0;
+    (new Cluc())
+      .mkdir(fixturePath+'/test', function(err){
+        if(err) log.error(err);
+        (!!err).should.be.false;
+        fs.existsSync(fixturePath+'/test').should.be.true;
+        doneCnt++;
+
+      }).run(new ClucProcess(), function(err){
+        doneCnt.should.eql(1);
+        if(err) return done(err);
+        done();
+      });
+  });
+  it('creates a remote directory', function(done){
+    var doneCnt = 0;
+    var t = Date.now();
+    (new Cluc())
+      .mkdir('/home/vagrant/test'+t, function(err){
+        if(err) log.error(err);
+        (!!err).should.be.false;
+        fs.existsSync(fixturePath+'/test').should.be.true;
+        doneCnt++;
+
+      }).fileExists('/home/vagrant/test'+t, function(err, exists){
+        if(err) log.error(err);
+        (!!err).should.be.false;
+        (exists).should.be.true;
+        doneCnt++;
+
+      }).run(new ClucSSh(servers.vagrant.ssh), function(err){
+        doneCnt.should.eql(2);
+        if(err) return done(err);
+        done();
+      });
+  });
+  it('fails properly to create a remote directory', function(done){
+    var doneCnt = 0;
+    var t = Date.now();
+    (new Cluc())
+      .mkdir('/root/test'+t, function(err){
+        if(err) log.error(err);
+        (!!err).should.be.true;
+        err.code.should.eql(3);
+        err.message.should.match(/Permission denied/);
+        doneCnt++;
+
+      }).run(new ClucSSh(servers.vagrant.ssh), function(err){
+        doneCnt.should.eql(1);
+        if(err) return done(err);
+        done();
+      });
+  });
+});
+
+describe('ensureFileContains', function(){
+  it('ensure a local file contains a piece of text', function(done){
+    var t = ''+Date.now();
+    var doneCnt = 0;
+    (new Cluc())
+      .ensureFileContains(fixturePath+'/test'+t, ''+t, function(err, contains){
+        if(err) log.error(err);
+        (!!contains).should.be.false;
+        doneCnt++;
+
+      }).readFile(fixturePath+'/test'+t, function(err, content){
+        if(err) log.error(err);
+        (content).should.match(t);
+        doneCnt++;
+
+      }).run(new ClucProcess(), function(err){
+        doneCnt.should.eql(2);
+        if(err) return done(err);
+        done();
+      });
+  });
+  it('ensure a remote file contains a piece of text', function(done){
+    var t = ''+Date.now();
+    var doneCnt = 0;
+    (new Cluc())
+      .fileExists('/home/vagrant/test'+t, function(err, exists){
+        if(err) log.error(err);
+        (!!exists).should.be.false;
+        doneCnt++;
+
+      }).ensureFileContains('/home/vagrant/test'+t, ''+t, function(err, contains){
+        if(err) log.error(err);
+        (!!contains).should.be.true;
+        doneCnt++;
+
+      }).readFile('/home/vagrant/test'+t, function(err, content){
+        if(err) log.error(err);
+        (content).indexOf(t).should.not.eql(-1);
+        doneCnt++;
+
+      }).run(new ClucSSh(servers.vagrant.ssh), function(err){
+        doneCnt.should.eql(3);
+        if(err) return done(err);
+        done();
+      });
+  });
+  it('fails properly to ensure a local file contains a piece of text', function(done){
+    var doneCnt = 0;
+    var t = Date.now();
+    (new Cluc())
+      .ensureFileContains('/root/test'+t, 'some', function(err, contains){
+        if(err) log.error(err);
+        (!!contains).should.be.false;
+        (!!err).should.be.true;
+        err.code.should.eql('EACCES');
+        err.message.should.match(/EACCES/);
+        doneCnt++;
+
+      }).run(new ClucProcess(), function(err){
+        doneCnt.should.eql(1);
+        if(err) return done(err);
+        done();
+      });
+  });
+  it('fails properly to ensure a remote file contains a piece of text', function(done){
+    var doneCnt = 0;
+    var t = ''+Date.now();
+    (new Cluc())
+      .ensureFileContains('/root/test'+t, 'some', function(err, contains){
+        if(err) log.error(err);
+        (!!contains).should.be.false;
+        (!!err).should.be.true;
+        err.message.should.match(/Permission denied/);
+        doneCnt++;
+
+      }).run(new ClucSSh(servers.vagrant.ssh), function(err){
+        doneCnt.should.eql(1);
+        if(err) return done(err);
+        done();
+      });
   });
 });
