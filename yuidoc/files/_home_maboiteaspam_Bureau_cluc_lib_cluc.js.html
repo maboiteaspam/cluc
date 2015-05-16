@@ -1,0 +1,884 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>/home/maboiteaspam/Bureau/cluc/lib/cluc.js</title>
+    <link rel="stylesheet" href="http://yui.yahooapis.com/3.9.1/build/cssgrids/cssgrids-min.css">
+    <link rel="stylesheet" href="../assets/vendor/prettify/prettify-min.css">
+    <link rel="stylesheet" href="../assets/css/main.css" id="site_styles">
+    <link rel="icon" href="../assets/favicon.ico">
+    <script src="http://yui.yahooapis.com/combo?3.9.1/build/yui/yui-min.js"></script>
+</head>
+<body class="yui3-skin-sam">
+
+<div id="doc">
+    <div id="hd" class="yui3-g header">
+        <div class="yui3-u-3-4">
+                <h1><img src="../assets/css/logo.png" title="" width="117" height="52"></h1>
+        </div>
+        <div class="yui3-u-1-4 version">
+            <em>API Docs for: </em>
+        </div>
+    </div>
+    <div id="bd" class="yui3-g">
+
+        <div class="yui3-u-1-4">
+            <div id="docs-sidebar" class="sidebar apidocs">
+                <div id="api-list">
+                    <h2 class="off-left">APIs</h2>
+                    <div id="api-tabview" class="tabview">
+                        <ul class="tabs">
+                            <li><a href="#api-classes">Classes</a></li>
+                            <li><a href="#api-modules">Modules</a></li>
+                        </ul>
+                
+                        <div id="api-tabview-filter">
+                            <input type="search" id="api-filter" placeholder="Type to filter APIs">
+                        </div>
+                
+                        <div id="api-tabview-panel">
+                            <ul id="api-classes" class="apis classes">
+                                <li><a href="../classes/Cluc.html">Cluc</a></li>
+                                <li><a href="../classes/ClucAnswer.html">ClucAnswer</a></li>
+                                <li><a href="../classes/ClucChildProcess.html">ClucChildProcess</a></li>
+                                <li><a href="../classes/ClucConfirm.html">ClucConfirm</a></li>
+                                <li><a href="../classes/ClucContext.html">ClucContext</a></li>
+                                <li><a href="../classes/.html"></a></li>
+                                <li><a href="../classes/ClucDieOnError.html">ClucDieOnError</a></li>
+                                <li><a href="../classes/ClucDisplay.html">ClucDisplay</a></li>
+                                <li><a href="../classes/ClucMustNot.html">ClucMustNot</a></li>
+                                <li><a href="../classes/ClucProgress.html">ClucProgress</a></li>
+                                <li><a href="../classes/ClucRule.html">ClucRule</a></li>
+                                <li><a href="../classes/ClucSpin.html">ClucSpin</a></li>
+                                <li><a href="../classes/ClucSpinUntil.html">ClucSpinUntil</a></li>
+                                <li><a href="../classes/ClucSsh.html">ClucSsh</a></li>
+                                <li><a href="../classes/ClucSSHContext.html">ClucSSHContext</a></li>
+                                <li><a href="../classes/ClucSuccess.html">ClucSuccess</a></li>
+                                <li><a href="../classes/ClucWarn.html">ClucWarn</a></li>
+                                <li><a href="../classes/ClucWatch.html">ClucWatch</a></li>
+                            </ul>
+                
+                            <ul id="api-modules" class="apis modules">
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="yui3-u-3-4">
+                <div id="api-options">
+                    Show:
+                    <label for="api-show-inherited">
+                        <input type="checkbox" id="api-show-inherited" checked>
+                        Inherited
+                    </label>
+            
+                    <label for="api-show-protected">
+                        <input type="checkbox" id="api-show-protected">
+                        Protected
+                    </label>
+            
+                    <label for="api-show-private">
+                        <input type="checkbox" id="api-show-private">
+                        Private
+                    </label>
+                    <label for="api-show-deprecated">
+                        <input type="checkbox" id="api-show-deprecated">
+                        Deprecated
+                    </label>
+            
+                </div>
+            
+            <div class="apidocs">
+                <div id="docs-main">
+                    <div class="content">
+<h1 class="file-heading">File: /home/maboiteaspam/Bureau/cluc/lib/cluc.js</h1>
+
+<div class="file">
+    <pre class="code prettyprint linenums">
+
+
+var log = require(&#x27;npmlog&#x27;);
+log.addLevel(&#x27;watch&#x27;, 2001, { }, &#x27;    &#x27;);
+log.addLevel(&#x27;success&#x27;, 2002, { fg: &#x27;white&#x27;, bg: &#x27;green&#x27; }, &#x27;succ&#x27;);
+log.addLevel(&#x27;confirm&#x27;, 2004, { fg: &#x27;white&#x27;, bg: &#x27;blue&#x27; }, &#x27; ok &#x27;);
+log.addLevel(&#x27;cmd&#x27;, 2003, { fg: &#x27;white&#x27;, bg: &#x27;grey&#x27; }, &#x27;&lt;CMD&#x27;);
+log.addLevel(&#x27;answer&#x27;, 2003, { fg: &#x27;white&#x27;, bg: &#x27;grey&#x27; }, &#x27;&lt;ANS&#x27;);
+log.addLevel(&#x27;title&#x27;, 2003, { fg: &#x27;yellow&#x27; }, &#x27;/!\\ &#x27;);
+
+var inquirer = require(&#x27;inquirer&#x27;);
+var named = require(&#x27;named-regexp&#x27;).named;
+var async = require(&#x27;async&#x27;);
+var byline = require(&#x27;byline&#x27;);
+var through = require(&#x27;through&#x27;);
+var _ = require(&#x27;underscore&#x27;);
+var _s = require(&#x27;underscore.string&#x27;);
+var ClucContext = require(&#x27;./cluc-childprocess-context.js&#x27;);
+
+var Cluc = (function(){
+  /**
+   * Provide command line
+   * queuing, execution and response
+   *
+   * @class Cluc
+   */
+  var Cluc = function(){
+    this.cmds = [];
+    this.savedValues = {};
+    this.recordStream = through();
+    this.skipNext = false;
+  };
+
+  Cluc.prototype.pushCmd = function(unit){
+    if(!this.skipNext) this.cmds.push(unit);
+    this.skipNext = false;
+    return this;
+  };
+
+  //region User Actions
+  // describe the flow of the script
+
+  /**
+   *
+   * @param cmd
+   * @param fn
+   * @returns {Cluc}
+   */
+  Cluc.prototype.stream = function(cmd,fn){
+    var unit = {cmd:cmd, fn:fn, t:&#x27;stream&#x27;,s:null};
+    this.pushCmd(unit);
+    return this;
+  };
+  /**
+   *
+   * @param cmd
+   * @param fn
+   * @returns {Cluc}
+   */
+  Cluc.prototype.tail = function(cmd,fn){
+    var unit = {cmd:cmd, fn:fn, t:&#x27;tail&#x27;,s:null};
+    this.pushCmd(unit);
+    return this;
+  };
+  /**
+   *
+   * @param cmd
+   * @param fn
+   * @returns {Cluc}
+   */
+  Cluc.prototype.exec = function(cmd,fn){
+    var unit = {cmd:cmd, fn:fn, t:&#x27;string&#x27;,s:null};
+    this.pushCmd(unit);
+    return this;
+  };
+  /**
+   *
+   * @type {Function}
+   */
+  Cluc.prototype.wait = Cluc.prototype.then =function(fn){
+    var unit = {fn:fn, t:&#x27;wait&#x27;};
+    this.pushCmd(unit);
+    return this;
+  };
+  /**
+   *
+   * @param path
+   * @param fn
+   * @returns {Cluc}
+   */
+  Cluc.prototype.readFile = function(path, fn){
+    var unit = {cmd:&#x27;readFile %s&#x27;, t:&#x27;fsMethod&#x27;, n:&#x27;readFile&#x27;, args:arguments};
+    unit.cmd = _s.sprintf(unit.cmd, path);
+    this.pushCmd(unit);
+    return this;
+  };
+  /**
+   *
+   * @param path
+   * @param fn
+   * @returns {Cluc}
+   */
+  Cluc.prototype.readFileSudo = function(path, fn){
+    var unit = {cmd:&#x27;readFileSudo %s&#x27;, t:&#x27;fsMethod&#x27;, n:&#x27;readFileSudo&#x27;, args:arguments};
+    unit.cmd = _s.sprintf(unit.cmd, path);
+    this.pushCmd(unit);
+    return this;
+  };
+  /**
+   *
+   * @param path
+   * @param fn
+   * @returns {Cluc}
+   */
+  Cluc.prototype.streamReadFile = function(path, fn){
+    var unit = {cmd:&#x27;streamReadFile %s&#x27;, t:&#x27;fsMethod&#x27;, n:&#x27;streamReadFile&#x27;, args:arguments};
+    unit.cmd = _s.sprintf(unit.cmd, path);
+    this.pushCmd(unit);
+    return this;
+  };
+  /**
+   *
+   * @param path
+   * @param fn
+   * @returns {Cluc}
+   */
+  Cluc.prototype.streamReadFileSudo = function(path, fn){
+    var unit = {cmd:&#x27;streamReadFileSudo %s&#x27;, t:&#x27;fsMethod&#x27;, n:&#x27;streamReadFileSudo&#x27;, args:arguments};
+    unit.cmd = _s.sprintf(unit.cmd, path);
+    this.pushCmd(unit);
+    return this;
+  };
+  /**
+   *
+   * @param remoteFile
+   * @param localPath
+   * @param fn
+   * @returns {Cluc}
+   */
+  Cluc.prototype.getFile = function(remoteFile, localPath, fn){
+    var unit = {cmd:&#x27;getFile %s %s&#x27;, t:&#x27;fsMethod&#x27;, n:&#x27;getFile&#x27;, args:arguments};
+    unit.cmd = _s.sprintf(unit.cmd, remoteFile, localPath);
+    this.pushCmd(unit);
+    return this;
+  };
+  /**
+   *
+   * @param remoteFile
+   * @param content
+   * @param fn
+   * @returns {Cluc}
+   */
+  Cluc.prototype.ensureFileContains = function(remoteFile, content, fn){
+    var unit = {cmd:&#x27;ensureFileContains %s&#x27;, t:&#x27;fsMethod&#x27;, n:&#x27;ensureFileContains&#x27;, args:arguments};
+    unit.cmd = _s.sprintf(unit.cmd, remoteFile);
+    this.pushCmd(unit);
+    return this;
+  };
+  /**
+   *
+   * @param remoteFile
+   * @param content
+   * @param fn
+   * @returns {Cluc}
+   */
+  Cluc.prototype.ensureFileContainsSudo = function(remoteFile, content, fn){
+    var unit = {cmd:&#x27;ensureFileContainsSudo %s&#x27;, t:&#x27;fsMethod&#x27;, n:&#x27;ensureFileContainsSudo&#x27;, args:arguments};
+    unit.cmd = _s.sprintf(unit.cmd, remoteFile);
+    this.pushCmd(unit);
+    return this;
+  };
+  /**
+   *
+   * @param localFile
+   * @param remoteFile
+   * @param fn
+   * @returns {Cluc}
+   */
+  Cluc.prototype.putFile = function(localFile, remoteFile, fn){
+    var unit = {cmd:&#x27;putFile %s %s&#x27;, t:&#x27;fsMethod&#x27;, n:&#x27;putFile&#x27;, args:arguments};
+    unit.cmd = _s.sprintf(unit.cmd, localFile, remoteFile);
+    this.pushCmd(unit);
+    return this;
+  };
+  /**
+   *
+   * @param localFile
+   * @param remoteFile
+   * @param fn
+   * @returns {Cluc}
+   */
+  Cluc.prototype.putFileSudo = function(localFile, remoteFile, fn){
+    var unit = {cmd:&#x27;putFileSudo %s %s&#x27;, t:&#x27;fsMethod&#x27;, n:&#x27;putFileSudo&#x27;, args:arguments};
+    unit.cmd = _s.sprintf(unit.cmd, localFile, remoteFile);
+    this.pushCmd(unit);
+    return this;
+  };
+  /**
+   *
+   * @param remoteFile
+   * @param content
+   * @param fn
+   * @returns {Cluc}
+   */
+  Cluc.prototype.writeFile = function(remoteFile, content, fn){
+    var unit = {cmd:&#x27;writeFile %s&#x27;, t:&#x27;fsMethod&#x27;, n:&#x27;writeFile&#x27;, args:arguments};
+    unit.cmd = _s.sprintf(unit.cmd, remoteFile);
+    this.pushCmd(unit);
+    return this;
+  };
+  /**
+   *
+   * @param remoteFile
+   * @param content
+   * @param fn
+   * @returns {Cluc}
+   */
+  Cluc.prototype.writeFileSudo = function(remoteFile, content, fn){
+    var unit = {cmd:&#x27;writeFileSudo %s&#x27;, t:&#x27;fsMethod&#x27;, n:&#x27;writeFileSudo&#x27;, args:arguments};
+    unit.cmd = _s.sprintf(unit.cmd, remoteFile);
+    this.pushCmd(unit);
+    return this;
+  };
+  /**
+   *
+   * @param remoteFile
+   * @param fn
+   * @returns {Cluc}
+   */
+  Cluc.prototype.fileExists = function(remoteFile, fn){
+    var unit = {cmd:&#x27;fileExists %s&#x27;, t:&#x27;fsMethod&#x27;, n:&#x27;fileExists&#x27;, args:arguments};
+    unit.cmd = _s.sprintf(unit.cmd, remoteFile);
+    this.pushCmd(unit);
+    return this;
+  };
+  /**
+   *
+   * @param remoteFile
+   * @param fn
+   * @returns {Cluc}
+   */
+  Cluc.prototype.fileExistsSudo = function(remoteFile, fn){
+    var unit = {cmd:&#x27;fileExistsSudo %s&#x27;, t:&#x27;fsMethod&#x27;, n:&#x27;fileExistsSudo&#x27;, args:arguments};
+    unit.cmd = _s.sprintf(unit.cmd, remoteFile);
+    this.pushCmd(unit);
+    return this;
+  };
+  /**
+   *
+   * @param remoteFile
+   * @param fn
+   * @returns {Cluc}
+   */
+  Cluc.prototype.rmdir = function(remoteFile, fn){
+    var unit = {cmd:&#x27;rmdir %s&#x27;, t:&#x27;fsMethod&#x27;, n:&#x27;rmdir&#x27;, args:arguments};
+    unit.cmd = _s.sprintf(unit.cmd, remoteFile);
+    this.pushCmd(unit);
+    return this;
+  };
+  /**
+   *
+   * @param remoteFile
+   * @param fn
+   * @returns {Cluc}
+   */
+  Cluc.prototype.rmdirSudo = function(remoteFile, fn){
+    var unit = {cmd:&#x27;rmdirSudo %s&#x27;, t:&#x27;fsMethod&#x27;, n:&#x27;rmdirSudo&#x27;, args:arguments};
+    unit.cmd = _s.sprintf(unit.cmd, remoteFile);
+    this.pushCmd(unit);
+    return this;
+  };
+  /**
+   *
+   * @param remoteFile
+   * @param fn
+   * @returns {Cluc}
+   */
+  Cluc.prototype.mktemp = function(remoteFile, fn){
+    var unit = {cmd:&#x27;mktemp %s&#x27;, t:&#x27;fsMethod&#x27;, n:&#x27;mktemp&#x27;, args:arguments};
+    unit.cmd = _s.sprintf(unit.cmd, remoteFile);
+    this.pushCmd(unit);
+    return this;
+  };
+  /**
+   *
+   * @param remoteFile
+   * @param fn
+   * @returns {Cluc}
+   */
+  Cluc.prototype.mkdir = function(remoteFile, fn){
+    var unit = {cmd:&#x27;mkdir %s&#x27;, t:&#x27;fsMethod&#x27;, n:&#x27;mkdir&#x27;, args:arguments};
+    unit.cmd = _s.sprintf(unit.cmd, remoteFile);
+    this.pushCmd(unit);
+    return this;
+  };
+  /**
+   *
+   * @param remoteFile
+   * @param fn
+   * @returns {Cluc}
+   */
+  Cluc.prototype.mkdirSudo = function(remoteFile, fn){
+    var unit = {cmd:&#x27;mkdirSudo %s&#x27;, t:&#x27;fsMethod&#x27;, n:&#x27;mkdirSudo&#x27;, args:arguments};
+    unit.cmd = _s.sprintf(unit.cmd, remoteFile);
+    this.pushCmd(unit);
+    return this;
+  };
+  /**
+   *
+   * @param remoteFile
+   * @param fn
+   * @returns {Cluc}
+   */
+  Cluc.prototype.ensureEmptyDir = function(remoteFile, fn){
+    var unit = {cmd:&#x27;ensureEmptyDir %s&#x27;, t:&#x27;fsMethod&#x27;, n:&#x27;ensureEmptyDir&#x27;, args:arguments};
+    unit.cmd = _s.sprintf(unit.cmd, remoteFile);
+    this.pushCmd(unit);
+    return this;
+  };
+  /**
+   *
+   * @param remoteFile
+   * @param fn
+   * @returns {Cluc}
+   */
+  Cluc.prototype.ensureEmptyDirSudo = function(remoteFile, fn){
+    var unit = {cmd:&#x27;ensureEmptyDirSudo %s&#x27;, t:&#x27;fsMethod&#x27;, n:&#x27;ensureEmptyDirSudo&#x27;, args:arguments};
+    unit.cmd = _s.sprintf(unit.cmd, remoteFile);
+    this.pushCmd(unit);
+    return this;
+  };
+  /**
+   *
+   * @param remoteFile
+   * @param fn
+   * @returns {Cluc}
+   */
+  Cluc.prototype.ensureOwnership = function(remoteFile, fn){
+    var unit = {cmd:&#x27;ensureOwnership %s&#x27;, t:&#x27;fsMethod&#x27;, n:&#x27;ensureOwnership&#x27;, args:arguments};
+    unit.cmd = _s.sprintf(unit.cmd, remoteFile);
+    this.pushCmd(unit);
+    return this;
+  };
+  /**
+   *
+   * @param localPath
+   * @param remotePath
+   * @param fn
+   * @returns {Cluc}
+   */
+  Cluc.prototype.putDir = function(localPath, remotePath, fn){
+    var unit = {cmd:&#x27;putDir %s %s&#x27;, t:&#x27;fsMethod&#x27;, n:&#x27;putDir&#x27;, args:arguments};
+    unit.cmd = _s.sprintf(unit.cmd, localPath, remotePath);
+    this.pushCmd(unit);
+    return this;
+  };
+  /**
+   *
+   * @param localPath
+   * @param remotePath
+   * @param fn
+   * @returns {Cluc}
+   */
+  Cluc.prototype.putDirSudo = function(localPath, remotePath, fn){
+    var unit = {cmd:&#x27;putDirSudo %s %s&#x27;, t:&#x27;fsMethod&#x27;, n:&#x27;putDirSudo&#x27;, args:arguments};
+    unit.cmd = _s.sprintf(unit.cmd, localPath, remotePath);
+    this.pushCmd(unit);
+    return this;
+  };
+  /**
+   *
+   * @param remotePath
+   * @param localPath
+   * @param fn
+   * @returns {Cluc}
+   */
+  Cluc.prototype.getDir = function(remotePath, localPath, fn){
+    var unit = {cmd:&#x27;getDir %s %s&#x27;, t:&#x27;fsMethod&#x27;, n:&#x27;getDir&#x27;, args:arguments};
+    unit.cmd = _s.sprintf(unit.cmd, remotePath, localPath);
+    this.pushCmd(unit);
+    return this;
+  };
+
+
+  /**
+   *
+   * @returns {Cluc}
+   */
+  Cluc.prototype.title = function(){
+    var args = Array.prototype.slice.call(arguments);
+    var unit = { t:&#x27;title&#x27;, d:args };
+    this.pushCmd(unit);
+    return this;
+  };
+  /**
+   *
+   * @param options
+   * @param fn
+   * @returns {Cluc}
+   */
+  Cluc.prototype.ask = function(options, fn){
+    var unit = {fn: fn, t:&#x27;ask&#x27;, d:options };
+    this.pushCmd(unit);
+    return this;
+  };
+  /**
+   *
+   * @param message
+   * @param choices
+   * @param then
+   * @returns {*}
+   */
+  Cluc.prototype.choose = function(message, choices, then){
+    return this.ask({
+      name:&#x27;chosen&#x27;,
+      type:&#x27;list&#x27;,
+      choices:choices,
+      message:message
+    }, function(answers, next){
+      then.apply(this, [answers.chosen]);
+      if(next) next();
+    });
+  };
+  //endregion
+
+  /**
+   *
+   * @param skipNext
+   * @returns {*}
+   */
+  Cluc.prototype.skip = function(skipNext){
+    if(!!skipNext) this.skipNext = !!skipNext;
+    return this;
+  };
+
+  /**
+   *
+   * @param object
+   * @param fn
+   * @returns {Cluc}
+   */
+  Cluc.prototype.each = function(object, fn){
+    if(!this.skipNext){
+      if(object.splice){
+        object.forEach(fn);
+      }else{
+        Object.keys(object).forEach(function(key){
+          fn(key, object[key]);
+        });
+      }
+    }
+    this.skipNext = false;
+    return this;
+  };
+
+  /**
+   *
+   * @param writeStream
+   * @returns {Cluc}
+   */
+  Cluc.prototype.record = function(writeStream){
+    this.recordStream = writeStream;
+    return this;
+  };
+
+
+  /**
+   *
+   * @param other
+   * @returns {Cluc}
+   */
+  Cluc.prototype.concat = function(other){
+    if(other instanceof Cluc ){
+      this.cmds = this.cmds.concat(other.cmds);
+    }else if( other instanceof Array ){
+      this.cmds = this.cmds.concat(other);
+    }
+    return this;
+  };
+  /**
+   *
+   * @param transport
+   * @param then
+   * @returns {boolean}
+   */
+  Cluc.prototype.executeComands = function(transport, then){
+    var that = this;
+    var cmds = that.cmds;
+    var recordStream = that.recordStream;
+
+    var then_ = then;
+    then = function(){
+      recordStream.end();
+      then_.apply(null,arguments);
+    };
+
+    var processTemplate = function(cmdStr, values){
+      var helpers = {
+        quote: function(value){
+          return &#x27;&quot;&#x27;+(value+&#x27;&#x27;).replace(/&quot;/g, &#x27;&quot;&#x27;)+&#x27;&quot;&#x27;;
+        },
+        dquote: function(value){
+          return &#x27;&quot;&#x27;+(value+&#x27;&#x27;).replace(/&quot;/g, &#x27;&quot;&#x27;)+&#x27;&quot;&#x27;;
+        },
+        squote: function(value){
+          return &#x27;&#x27;+(value+&#x27;&#x27;).replace(/&#x27;/g, &quot;&#x27;&quot;)+&#x27;&#x27;;
+        }
+      };
+      if(_.isArray(cmdStr) ){
+        return _.map(cmdStr, function(c) {
+          return _.template(c)(_.extend(helpers, values));
+        });
+      }
+      return _.template(cmdStr)(_.extend(helpers, values));
+    };
+
+    if(this.cmds.length){
+
+
+      function _next(context){
+
+        var cmd = null;
+        if(!(context instanceof ClucContext)){
+          if(!cmds.length){
+            return then();
+          }
+          cmd = cmds.shift();
+          context = transport.createContext();
+        }else{
+          cmd = context.cmd;
+        }
+
+        context.init(cmd, that.savedValues);
+
+        if(cmd.cmd){
+          var cmdStr = cmd.cmd;
+          // make cmd string a template
+          cmdStr = processTemplate(cmdStr, that.savedValues);
+
+          log.cmd(&#x27;&#x27;, cmdStr);
+          recordStream.write(&#x27;\n$&gt; &#x27;+cmdStr+&#x27;\n&#x27;);
+        }
+
+        var runFailure = function(context){
+          var orFn = context.getOrRules();
+          var isDead = [];
+          orFn.forEach(function(rule){
+            isDead.push(function(_done){
+              rule.orFn( rule.forgeErrorMessage(), _done);
+            });
+          });
+          return async.parallel(isDead, function(err){
+            if (err) then(err);
+            else _next();
+          });
+        };
+
+        var controlCommandClose = function(context, then){
+          that.savedValues = _.extend(that.savedValues, context.savedValues);
+          if(context.hasFailed() ){
+            var orFn = context.getOrRules();
+            if(context.canRedo() ){
+              return _next( context );
+            }else if(orFn.length) {
+              return runFailure(context);
+            }
+          }
+          if(then) then();
+        };
+
+        if(context){
+
+          var execType = cmd.t;
+
+          // this else if seems not so terrible,
+          // good thing is,
+          // it let us use named function to contextualize errors
+          if(execType.match(/(stream|tail)/)){
+            transport.stream(cmdStr, function streamCmdFn(error, stderr, stdout, stdin){
+
+              context.executeRules(error, stdout, stderr, stdin);
+
+              if(stdout &amp;&amp; execType==&#x27;stream&#x27;)
+                stdout.on(&#x27;close&#x27;, function() {
+                  process.nextTick(function(){
+                    controlCommandClose(context, _next);
+                  });
+                });
+
+              if(!stdout || execType==&#x27;tail&#x27;) _next();
+
+              byline(stdout).on(&#x27;data&#x27;, function(d) {
+                recordStream.write(d+&#x27;\n&#x27;);
+              });
+              byline(stderr).on(&#x27;data&#x27;, function(d) {
+                recordStream.write(d+&#x27;\n&#x27;);
+              });
+
+            });
+
+          }else if(execType==&#x27;string&#x27;){
+            transport.exec(cmdStr, function execCmdFn(error, stdout, stderr){
+              recordStream.write(stdout);
+              recordStream.write(stderr);
+              context.executeRules(error, stdout, stderr);
+              controlCommandClose(context, _next);
+            });
+
+          }else if(execType==&#x27;wait&#x27;){
+            cmd.fn.apply(context, [function waitFn(){
+              that.savedValues = _.extend(that.savedValues, context.savedValues);
+              _next();
+            }]);
+
+          }else if(execType===&quot;fsMethod&quot;){
+            var args = Array.prototype.slice.call(cmd.args);
+            if(_.isFunction(_.last(args))){
+              cmd.fn = args.pop();
+            }
+            args.forEach(function(arg, index){
+              if(_.isString(arg) ){
+                args[index] = processTemplate(arg, that.savedValues);
+              }
+            });
+            args.push(function fsMethodFn(err){
+              var args = Array.prototype.slice.call(arguments);
+              if(cmd.fn) cmd.fn.apply(context, args);
+              that.savedValues = _.extend(that.savedValues, context.savedValues);
+              _next();
+            });
+            transport[cmd.n].apply(transport, args);
+
+          }else if(execType==&#x27;title&#x27;){
+            var title = processTemplate(cmd.d, that.savedValues);
+            log.title.apply(context, title);
+            that.savedValues = _.extend(that.savedValues, context.savedValues);
+            _next();
+
+          }else if(execType==&#x27;ask&#x27;){
+            cmd.d.choices = processTemplate(cmd.d.choices, that.savedValues);
+            cmd.d.message = processTemplate(cmd.d.message, that.savedValues);
+            inquirer.prompt(cmd.d, function InquirerPrompt(){
+              var args = Array.prototype.slice.call(arguments);
+              args.push(function(){
+                that.savedValues = _.extend(that.savedValues, context.savedValues);
+                _next();
+              });
+              if(cmd.fn) cmd.fn.apply(context, args);
+            } );
+          }
+
+        }
+      }
+      _next();
+
+      return true;
+
+    }else if(!cmds.length){
+      then();
+    }
+
+    return false;
+  };
+  /**
+   *
+   * @param transport
+   * @param then
+   * @returns {Cluc}
+   */
+  Cluc.prototype.run = function(transport, then){
+    var that = this;
+    process.nextTick(function(){
+      transport.open(function(err){
+        if(err) throw err;
+        that.executeComands(transport, function(err){
+          transport.close(function(){
+            if(then) then(err);
+          });
+        });
+      });
+    });
+    return this;
+  };
+
+  //region Helper to control script flow
+  /**
+   *
+   * @param err
+   * @returns {Function}
+   */
+  Cluc.prototype.die = function(err){
+    if(!err){
+      err = new Error();
+    }
+    var s = err.stack.split(&#x27;\n&#x27;);
+    s.shift();
+    s.shift();
+    var line = s.shift();
+    line = _s.trim(line).replace(/.+\(([^):]+):([0-9]+):([0-9]+)\)/, &quot;$1, line $2 col $3&quot;);
+    return function died(reason, then){
+      var errorMsg = &#x27;\nend of process, reason is :&#x27;;
+      errorMsg += &#x27;\n&#x27; + (_.isArray(reason) ? reason.join(&#x27;\n&#x27;) : reason );
+      errorMsg += &#x27;\n&#x27; + &#x27;at &#x27;+line;
+      errorMsg += &#x27;\n&#x27;;
+      log.error(&#x27;&#x27;, errorMsg);
+      err.message = errorMsg;
+      then(err);
+    }
+  };
+  /**
+   *
+   * @param message
+   * @param def
+   * @returns {Function}
+   */
+  Cluc.prototype.confirmToProceed = function(message, def){
+    var that = this;
+    message = (message||&#x27;%s, do you prefer to proceed ?&#x27;);
+    def = def===undefined?false:!!def;
+    var err = new Error();
+    return function confirmToProceed(reason, then){
+      inquirer.prompt({
+        name:&#x27;confirmed&#x27;,
+        type:&#x27;confirm&#x27;,
+        default: def,
+        message:message.replace(&#x27;%s&#x27;, reason)
+      }, function(answer){
+        if(answer.confirmed===true){
+          return then();
+        }
+        that.die(err)(reason, then);
+      });
+    }
+  };
+  /**
+   *
+   * @param message
+   * @param def
+   * @returns {Function}
+   */
+  Cluc.prototype.confirmToStop = function(message, def){
+    var that = this;
+    message = (message||&#x27;%s, do you prefer to stop ?&#x27;);
+    def = def===undefined?true:!!def;
+    var err = new Error();
+    return function confirmToStop(reason, then){
+      inquirer.prompt({
+        name:&#x27;confirmed&#x27;,
+        type:&#x27;confirm&#x27;,
+        default: def,
+        message:message.replace(&#x27;%s&#x27;, reason)
+      }, function(answer){
+        if(answer.confirmed===false){
+          return then();
+        }
+        that.die(err)(reason, then);
+      });
+    }
+  };
+  //endregion
+
+
+  return Cluc;
+
+})();
+
+module.exports = Cluc;
+
+    </pre>
+</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="../assets/vendor/prettify/prettify-min.js"></script>
+<script>prettyPrint();</script>
+<script src="../assets/js/yui-prettify.js"></script>
+<script src="../assets/../api.js"></script>
+<script src="../assets/js/api-filter.js"></script>
+<script src="../assets/js/api-list.js"></script>
+<script src="../assets/js/api-search.js"></script>
+<script src="../assets/js/apidocs.js"></script>
+</body>
+</html>

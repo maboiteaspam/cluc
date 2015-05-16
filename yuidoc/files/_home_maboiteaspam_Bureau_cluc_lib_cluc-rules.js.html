@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>/home/maboiteaspam/Bureau/cluc/lib/cluc-rules.js</title>
+    <link rel="stylesheet" href="http://yui.yahooapis.com/3.9.1/build/cssgrids/cssgrids-min.css">
+    <link rel="stylesheet" href="../assets/vendor/prettify/prettify-min.css">
+    <link rel="stylesheet" href="../assets/css/main.css" id="site_styles">
+    <link rel="icon" href="../assets/favicon.ico">
+    <script src="http://yui.yahooapis.com/combo?3.9.1/build/yui/yui-min.js"></script>
+</head>
+<body class="yui3-skin-sam">
+
+<div id="doc">
+    <div id="hd" class="yui3-g header">
+        <div class="yui3-u-3-4">
+                <h1><img src="../assets/css/logo.png" title="" width="117" height="52"></h1>
+        </div>
+        <div class="yui3-u-1-4 version">
+            <em>API Docs for: </em>
+        </div>
+    </div>
+    <div id="bd" class="yui3-g">
+
+        <div class="yui3-u-1-4">
+            <div id="docs-sidebar" class="sidebar apidocs">
+                <div id="api-list">
+                    <h2 class="off-left">APIs</h2>
+                    <div id="api-tabview" class="tabview">
+                        <ul class="tabs">
+                            <li><a href="#api-classes">Classes</a></li>
+                            <li><a href="#api-modules">Modules</a></li>
+                        </ul>
+                
+                        <div id="api-tabview-filter">
+                            <input type="search" id="api-filter" placeholder="Type to filter APIs">
+                        </div>
+                
+                        <div id="api-tabview-panel">
+                            <ul id="api-classes" class="apis classes">
+                                <li><a href="../classes/Cluc.html">Cluc</a></li>
+                                <li><a href="../classes/ClucAnswer.html">ClucAnswer</a></li>
+                                <li><a href="../classes/ClucChildProcess.html">ClucChildProcess</a></li>
+                                <li><a href="../classes/ClucConfirm.html">ClucConfirm</a></li>
+                                <li><a href="../classes/ClucContext.html">ClucContext</a></li>
+                                <li><a href="../classes/.html"></a></li>
+                                <li><a href="../classes/ClucDieOnError.html">ClucDieOnError</a></li>
+                                <li><a href="../classes/ClucDisplay.html">ClucDisplay</a></li>
+                                <li><a href="../classes/ClucMustNot.html">ClucMustNot</a></li>
+                                <li><a href="../classes/ClucProgress.html">ClucProgress</a></li>
+                                <li><a href="../classes/ClucRule.html">ClucRule</a></li>
+                                <li><a href="../classes/ClucSpin.html">ClucSpin</a></li>
+                                <li><a href="../classes/ClucSpinUntil.html">ClucSpinUntil</a></li>
+                                <li><a href="../classes/ClucSsh.html">ClucSsh</a></li>
+                                <li><a href="../classes/ClucSSHContext.html">ClucSSHContext</a></li>
+                                <li><a href="../classes/ClucSuccess.html">ClucSuccess</a></li>
+                                <li><a href="../classes/ClucWarn.html">ClucWarn</a></li>
+                                <li><a href="../classes/ClucWatch.html">ClucWatch</a></li>
+                            </ul>
+                
+                            <ul id="api-modules" class="apis modules">
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="yui3-u-3-4">
+                <div id="api-options">
+                    Show:
+                    <label for="api-show-inherited">
+                        <input type="checkbox" id="api-show-inherited" checked>
+                        Inherited
+                    </label>
+            
+                    <label for="api-show-protected">
+                        <input type="checkbox" id="api-show-protected">
+                        Protected
+                    </label>
+            
+                    <label for="api-show-private">
+                        <input type="checkbox" id="api-show-private">
+                        Private
+                    </label>
+                    <label for="api-show-deprecated">
+                        <input type="checkbox" id="api-show-deprecated">
+                        Deprecated
+                    </label>
+            
+                </div>
+            
+            <div class="apidocs">
+                <div id="docs-main">
+                    <div class="content">
+<h1 class="file-heading">File: /home/maboiteaspam/Bureau/cluc/lib/cluc-rules.js</h1>
+
+<div class="file">
+    <pre class="code prettyprint linenums">
+
+
+var log = require(&#x27;npmlog&#x27;);
+log.addLevel(&#x27;watch&#x27;, 2001, { }, &#x27;    &#x27;);
+log.addLevel(&#x27;success&#x27;, 2002, { fg: &#x27;white&#x27;, bg: &#x27;green&#x27; }, &#x27;succ&#x27;);
+log.addLevel(&#x27;confirm&#x27;, 2004, { fg: &#x27;white&#x27;, bg: &#x27;blue&#x27; }, &#x27; ok &#x27;);
+log.addLevel(&#x27;cmd&#x27;, 2003, { fg: &#x27;white&#x27;, bg: &#x27;grey&#x27; }, &#x27;&lt;CMD&#x27;);
+log.addLevel(&#x27;answer&#x27;, 2003, { fg: &#x27;white&#x27;, bg: &#x27;grey&#x27; }, &#x27;&lt;ANS&#x27;);
+log.addLevel(&#x27;title&#x27;, 2003, { fg: &#x27;yellow&#x27; }, &#x27;/!\\ &#x27;);
+
+var _ = require(&#x27;underscore&#x27;);
+var util = require(&#x27;util&#x27;);
+var _s = require(&#x27;underscore.string&#x27;);
+var symbols = require(&#x27;symbolsjs&#x27;);
+var named = require(&#x27;named-regexp&#x27;).named;
+var Spinner = require(&#x27;cli-spinner&#x27;).Spinner;
+var ProgressBar = require(&#x27;progress&#x27;);
+
+var ClucRule = (function(){
+  /**
+   * Test output against a pattern
+   * then save its states until the command has finished
+   *
+   * @class ClucRule
+   */
+  var ClucRule = function(){};
+
+  ClucRule.prototype.init = function(search, userDefinedMessage){
+    this.failed = false;
+    this.orFn = null;
+    this.matched = null;
+    this.capturedData = null;
+    this.hasMatchedOnce = false;
+    this.search = search instanceof RegExp ? named(search) : search;
+    this.userDefinedMessage = userDefinedMessage;
+  };
+
+  ClucRule.prototype.forgeErrorMessage = function(){
+    if(_.isString(this.userDefinedMessage) ){
+      if(this.search instanceof RegExp ){
+        var captures = this.matched ? this.matched.captures : {};
+        if(Object.keys(captures).length){
+          var userMsg = this.userDefinedMessage;
+          Object.keys(captures).forEach(function(name){
+            var value = captures[name].pop();
+            userMsg = userMsg.replace(new RegExp(name,&#x27;g&#x27;), (value||&#x27;-&#x27;));
+          });
+          return userMsg;
+        }else{
+          var printArgs = [].concat(this.matched);
+          printArgs.shift();
+          printArgs = printArgs.map(function(v){
+            return v || &#x27;-&#x27;;
+          });
+          return _s.vsprintf(this.userDefinedMessage, printArgs);
+        }
+      }
+      return this.userDefinedMessage;
+    }
+    if(_.isString(this.search) &amp;&amp; !this.matched ){
+      return this.search;
+    }
+    if(this.search instanceof RegExp &amp;&amp; this.matched){
+      return this.matched[1] ||
+        _s.trim(this.matched.input);
+    }
+    return this.search;
+  };
+
+  ClucRule.prototype.testData = function(data, stdpipe, alreadyMatched){
+    this.capturedData = &#x27;&#x27;+data;
+    if(this.search instanceof RegExp ){
+      this.matched = this.search.exec(this.capturedData);
+    }else{
+      this.matched = (this.capturedData).match(this.search);
+    }
+    if(!this.hasMatchedOnce &amp;&amp; !!this.matched === true){
+      this.hasMatchedOnce = true;
+      if(this.onceMatch){
+        this.onceMatch(stdpipe, alreadyMatched);
+      }
+    }
+    if(this.onData){
+      this.onData(!!this.matched, stdpipe, alreadyMatched);
+    }
+    return this.matched;
+  };
+
+  ClucRule.prototype.close = function(){
+    if(this.capturedData===null){
+      this.matched = false;
+    }
+    if(this.onClose){
+      this.onClose(!!this.matched);
+    }
+  };
+
+  ClucRule.prototype.hasFailed = function(){
+    return this.failed;
+  };
+
+  ClucRule.prototype.or = function(fn){
+    this.orFn = fn;
+  };
+
+  return ClucRule;
+})();
+
+var ClucMust = (function(){
+  /**
+   * Displays success message
+   * if pattern matches
+   * Otherwise displays failure message
+   *
+   * @class
+   */
+  var ClucMust = function(){};
+  util.inherits(ClucMust, ClucRule);
+  ClucMust.prototype.onceMatch = function(){
+    log.success(&#x27; &#x27;+symbols.ok+&#x27; &#x27;, &#x27;&#x27;+(this.forgeErrorMessage() )+&#x27;&#x27; );
+    console.log(&#x27;&#x27;);
+  };
+  ClucMust.prototype.onClose = function(matched){
+    if(!matched &amp;&amp; !this.hasMatchedOnce){
+      this.failed = true;
+      log.warn(&#x27; &#x27;+symbols.err+&#x27; &#x27;, &#x27;\n&#x27;+&#x27; &#x27;+(this.forgeErrorMessage() )+&#x27;\n&#x27; );
+    }
+  };
+  return ClucMust;
+})();
+
+var ClucSuccess = (function(){
+  /**
+   * Displays success message
+   * if pattern matches
+   *
+   * @class ClucSuccess
+   */
+  var ClucSuccess = function(){};
+  util.inherits(ClucSuccess, ClucRule);
+  ClucSuccess.prototype.onceMatch = function(){
+    this.failed = true;
+    log.success(&#x27; &#x27;+symbols.ok+&#x27; &#x27;, &#x27;&#x27;+(this.forgeErrorMessage() )+&#x27;&#x27; );
+    console.log(&#x27;&#x27;);
+  };
+  ClucSuccess.prototype.hasFailed = function(){
+    return !this.failed;
+  };
+  return ClucSuccess;
+})();
+
+var ClucMustNot = (function(){
+  /**
+   * Displays failure message
+   * if pattern matches
+   * Otherwise displays success message
+   *
+   * @class ClucMustNot
+   */
+  var ClucMustNot = function(){};
+  util.inherits(ClucMustNot, ClucRule);
+  ClucMustNot.prototype.onceMatch = function(){
+    this.failed = true;
+    log.error(&#x27; &#x27;+symbols.err+&#x27; &#x27;, &#x27;\n&#x27;+(this.forgeErrorMessage() )+&#x27;\n&#x27; );
+  };
+  ClucMustNot.prototype.onClose = function(matched){
+    if(!matched &amp;&amp; !this.failed){
+      log.success(&#x27; &#x27;+symbols.ok+&#x27; &#x27;, &#x27;&#x27;+(this.forgeErrorMessage() )+&#x27;&#x27; );
+      console.log(&#x27;&#x27;);
+    }
+  };
+  return ClucMustNot;
+})();
+
+var ClucConfirm = (function(){
+  /**
+   * Displays confirm message
+   * if pattern matches
+   * @class ClucConfirm
+   */
+  var ClucConfirm = function(){};
+  util.inherits(ClucConfirm, ClucRule);
+  ClucConfirm.prototype.onceMatch = function(){
+    this.failed = true;
+    log.confirm(&#x27;   &#x27;, this.forgeErrorMessage());
+    console.log(&#x27;&#x27;);
+  };
+  ClucConfirm.prototype.hasFailed = function(){
+    return !this.failed;
+  };
+  return ClucConfirm;
+})();
+
+var ClucWarn = (function(){
+  /**
+   * Displays warning message
+   * if pattern matches
+   * @class ClucWarn
+   */
+  var ClucWarn = function(){};
+  util.inherits(ClucWarn, ClucRule);
+  ClucWarn.prototype.onceMatch = function(){
+    this.failed = true;
+    log.warn(&#x27;   &#x27;, this.forgeErrorMessage());
+  };
+  return ClucWarn;
+})();
+
+var ClucWatch = (function(){
+  /**
+   * Displays the output
+   * When pattern matches
+   * @class ClucWatch
+   */
+  var ClucWatch = function(){};
+  util.inherits(ClucWatch, ClucRule);
+  ClucWatch.prototype.onData = function(matched){
+    if(matched){
+      log.watch(&#x27;  |&#x27;, this.forgeErrorMessage() );
+    }
+  };
+  return ClucWatch;
+})();
+
+var ClucSpin = (function(){
+  /**
+   * Displays a spinner
+   * while pattern matches
+   * @class ClucSpin
+   */
+  var ClucSpin = function(){};
+  util.inherits(ClucSpin, ClucRule);
+  ClucSpin.prototype.onData = function(matched){
+    if(matched){
+      if(!this.spinner){
+        this.spinner = new Spinner(this.userDefinedMessage || &#x27;%s&#x27;);
+        this.spinner.setSpinnerString(&#x27;|/-\\&#x27;);
+      }
+      this.spinner.stop();
+      this.spinner.start();
+    }
+    if(!matched){
+      if(this.spinner){
+        this.spinner.stop(true);
+      }
+    }
+  };
+  ClucSpin.prototype.onClose = function(){
+    if(this.spinner){
+      this.spinner.stop(true);
+    }
+  };
+  return ClucSpin;
+})();
+
+var ClucSpinUntil = (function(){
+  /**
+   * Displays a spinner
+   * until pattern matches
+   * @class ClucSpinUntil
+   */
+  var ClucSpinUntil = function(){
+    this.spinner = new Spinner(this.userDefinedMessage || &#x27;%s&#x27;);
+    this.spinner.setSpinnerString(&#x27;|/-\\&#x27;);
+    this.spinner.start();
+  };
+  util.inherits(ClucSpinUntil, ClucRule);
+  ClucSpinUntil.prototype.onData = function(matched){
+    if(matched){
+      if(this.spinner){
+        this.spinner.stop(true);
+      }
+    }
+  };
+  ClucSpinUntil.prototype.onClose = function(){
+    if(this.spinner){
+      this.spinner.stop(true);
+    }
+  };
+  return ClucSpinUntil;
+})();
+
+var ClucProgress = (function(){
+  /**
+   * Displays a progress
+   * while pattern matches
+   * @class ClucProgress
+   */
+  var ClucProgress = function(){};
+  util.inherits(ClucProgress, ClucRule);
+  ClucProgress.prototype.onData = function(matched){
+    if(matched){
+      var captures = this.matched.captures ||  {};
+      if(Object.keys(captures).length){
+        var current = (captures.current || []).pop() || 0;
+        var title = (captures.title || []).pop() || &#x27;&#x27;;
+        var total = (captures.total || []).pop() || 100;
+        if(!this.bar){
+          this.bar = new ProgressBar(&#x27;:title [:bar] :percent :etas &#x27;, {
+            complete: &#x27;=&#x27;,
+            incomplete: &#x27; &#x27;,
+            width: 20,
+            title: title,
+            total: total
+          });
+        }
+        this.bar.update( current/total,{
+          title:title
+        });
+      }
+    }
+  };
+  return ClucProgress;
+})();
+
+var ClucAnswer = (function(){
+  /**
+   * Writes the stdin with provided answer
+   * When given pattern matches
+   * @class ClucAnswer
+   */
+  var ClucAnswer = function(){};
+  util.inherits(ClucAnswer, ClucRule);
+  ClucAnswer.prototype.onData = function(matched){
+    if(matched){
+      log.answer(&#x27;    &#x27;, this.forgeErrorMessage());
+      this.stdin.write(this.userDefinedMessage);
+      this.stdin.write(&#x27;\n&#x27;);
+    }
+  };
+  return ClucAnswer;
+})();
+
+var ClucDisplay = (function(){
+  /**
+   * Displays the output
+   * When patterns has not previsouly matches
+   * @class ClucDisplay
+   */
+  var ClucDisplay = function(){};
+  util.inherits(ClucDisplay, ClucRule);
+  ClucDisplay.prototype.onData = function(matched, stdpipe, alreadyMatched){
+    if(!alreadyMatched){
+      var data = this.capturedData===null?&#x27;no data\n&#x27;:this.capturedData;
+      log.watch(&#x27;   &#x27;, data );
+    }
+  };
+  ClucDisplay.prototype.onClose = function(){
+    if(!this.search){
+      var data = this.capturedData===null?&#x27;no data&#x27;:this.capturedData;
+      log.watch(&#x27;   &#x27;, data );
+    }
+  };
+  return ClucDisplay;
+})();
+
+var ClucDieOnError = (function(){
+  /**
+   * Throws an error
+   * When patterns match in stderr
+   * @class ClucDieOnError
+   */
+  var ClucDieOnError = function(){};
+  util.inherits(ClucDieOnError, ClucRule);
+  ClucDieOnError.prototype.onData = function(matched, stdpipe){
+    if(this.capturedData &amp;&amp; stdpipe===&#x27;stderr&#x27;){
+      log.error(&#x27;   &#x27;, this.capturedData );
+      if(!this.failed) this.failed = &#x27;&#x27;;
+      this.failed+=this.capturedData;
+    }
+  };
+  ClucDieOnError.prototype.onClose = function(){
+    if(this.failed){
+      throw this.failed;
+    }
+  };
+  return ClucDieOnError;
+})();
+
+module.exports = {
+  rule:ClucRule,
+  must:ClucMust,
+  success:ClucSuccess,
+  confirm:ClucConfirm,
+  mustnot:ClucMustNot,
+  warn:ClucWarn,
+  watch:ClucWatch,
+  spin:ClucSpin,
+  spinUntil:ClucSpinUntil,
+  progress:ClucProgress,
+  answer:ClucAnswer,
+  display:ClucDisplay,
+  dieOnError:ClucDieOnError
+};
+    </pre>
+</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="../assets/vendor/prettify/prettify-min.js"></script>
+<script>prettyPrint();</script>
+<script src="../assets/js/yui-prettify.js"></script>
+<script src="../assets/../api.js"></script>
+<script src="../assets/js/api-filter.js"></script>
+<script src="../assets/js/api-list.js"></script>
+<script src="../assets/js/api-search.js"></script>
+<script src="../assets/js/apidocs.js"></script>
+</body>
+</html>

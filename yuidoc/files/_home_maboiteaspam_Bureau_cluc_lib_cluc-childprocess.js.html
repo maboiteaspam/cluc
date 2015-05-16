@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>/home/maboiteaspam/Bureau/cluc/lib/cluc-childprocess.js</title>
+    <link rel="stylesheet" href="http://yui.yahooapis.com/3.9.1/build/cssgrids/cssgrids-min.css">
+    <link rel="stylesheet" href="../assets/vendor/prettify/prettify-min.css">
+    <link rel="stylesheet" href="../assets/css/main.css" id="site_styles">
+    <link rel="icon" href="../assets/favicon.ico">
+    <script src="http://yui.yahooapis.com/combo?3.9.1/build/yui/yui-min.js"></script>
+</head>
+<body class="yui3-skin-sam">
+
+<div id="doc">
+    <div id="hd" class="yui3-g header">
+        <div class="yui3-u-3-4">
+                <h1><img src="../assets/css/logo.png" title="" width="117" height="52"></h1>
+        </div>
+        <div class="yui3-u-1-4 version">
+            <em>API Docs for: </em>
+        </div>
+    </div>
+    <div id="bd" class="yui3-g">
+
+        <div class="yui3-u-1-4">
+            <div id="docs-sidebar" class="sidebar apidocs">
+                <div id="api-list">
+                    <h2 class="off-left">APIs</h2>
+                    <div id="api-tabview" class="tabview">
+                        <ul class="tabs">
+                            <li><a href="#api-classes">Classes</a></li>
+                            <li><a href="#api-modules">Modules</a></li>
+                        </ul>
+                
+                        <div id="api-tabview-filter">
+                            <input type="search" id="api-filter" placeholder="Type to filter APIs">
+                        </div>
+                
+                        <div id="api-tabview-panel">
+                            <ul id="api-classes" class="apis classes">
+                                <li><a href="../classes/Cluc.html">Cluc</a></li>
+                                <li><a href="../classes/ClucAnswer.html">ClucAnswer</a></li>
+                                <li><a href="../classes/ClucChildProcess.html">ClucChildProcess</a></li>
+                                <li><a href="../classes/ClucConfirm.html">ClucConfirm</a></li>
+                                <li><a href="../classes/ClucContext.html">ClucContext</a></li>
+                                <li><a href="../classes/.html"></a></li>
+                                <li><a href="../classes/ClucDieOnError.html">ClucDieOnError</a></li>
+                                <li><a href="../classes/ClucDisplay.html">ClucDisplay</a></li>
+                                <li><a href="../classes/ClucMustNot.html">ClucMustNot</a></li>
+                                <li><a href="../classes/ClucProgress.html">ClucProgress</a></li>
+                                <li><a href="../classes/ClucRule.html">ClucRule</a></li>
+                                <li><a href="../classes/ClucSpin.html">ClucSpin</a></li>
+                                <li><a href="../classes/ClucSpinUntil.html">ClucSpinUntil</a></li>
+                                <li><a href="../classes/ClucSsh.html">ClucSsh</a></li>
+                                <li><a href="../classes/ClucSSHContext.html">ClucSSHContext</a></li>
+                                <li><a href="../classes/ClucSuccess.html">ClucSuccess</a></li>
+                                <li><a href="../classes/ClucWarn.html">ClucWarn</a></li>
+                                <li><a href="../classes/ClucWatch.html">ClucWatch</a></li>
+                            </ul>
+                
+                            <ul id="api-modules" class="apis modules">
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="yui3-u-3-4">
+                <div id="api-options">
+                    Show:
+                    <label for="api-show-inherited">
+                        <input type="checkbox" id="api-show-inherited" checked>
+                        Inherited
+                    </label>
+            
+                    <label for="api-show-protected">
+                        <input type="checkbox" id="api-show-protected">
+                        Protected
+                    </label>
+            
+                    <label for="api-show-private">
+                        <input type="checkbox" id="api-show-private">
+                        Private
+                    </label>
+                    <label for="api-show-deprecated">
+                        <input type="checkbox" id="api-show-deprecated">
+                        Deprecated
+                    </label>
+            
+                </div>
+            
+            <div class="apidocs">
+                <div id="docs-main">
+                    <div class="content">
+<h1 class="file-heading">File: /home/maboiteaspam/Bureau/cluc/lib/cluc-childprocess.js</h1>
+
+<div class="file">
+    <pre class="code prettyprint linenums">
+
+
+var pkg = require(&#x27;../package.json&#x27;);
+var debug = require(&#x27;debug&#x27;)(pkg.name);
+var through = require(&#x27;through&#x27;);
+var child_process = require(&#x27;child_process&#x27;);
+var fs = require(&#x27;fs-extra&#x27;);
+var temp = require(&#x27;temp&#x27;).track();
+
+
+var ClucChildProcess = (function(){
+  /**
+   * Executes commands on the local system
+   *
+   * @class ClucChildProcess
+   */
+  var ClucChildProcess = function(OutputHelper){
+    this.shell = null;
+    this.cmds = [];
+    this.OutputHelper = OutputHelper || require(&#x27;./cluc-childprocess-context.js&#x27;);
+  };
+
+  ClucChildProcess.prototype.createContext = function(){
+    return new (this.OutputHelper)();
+  };
+  ClucChildProcess.prototype.stream = function(cmdStr, then){
+    var stdoutStream = through();
+    var stderrStream = through();
+    var procesStream = through();
+    then(null, stderrStream,
+      stdoutStream, this.shell.stdin, procesStream);
+
+    var t = &#x27;__cluc__&#x27;+(new Date()).getTime();
+    debug(cmdStr);
+    debug(t);
+    var that = this;
+    var testEnd = function(stream){
+      var listener = function(d){
+        debug(d+&#x27;&#x27;);
+        var isEnd = (&#x27;&#x27;+d).match(t);
+        if (isEnd){
+          d = (&#x27;&#x27;+d).replace(t,&#x27;&#x27;);
+        }
+        stream.write(d);
+        if (isEnd){
+
+          that.shell.stdout.removeListener(&#x27;data&#x27;, listener);
+          that.shell.stderr.removeListener(&#x27;data&#x27;, listener);
+
+          procesStream.emit(&#x27;close&#x27;);
+          stdoutStream.emit(&#x27;close&#x27;);
+          stderrStream.emit(&#x27;close&#x27;);
+
+          procesStream.removeAllListeners(&#x27;close&#x27;);
+          stdoutStream.removeAllListeners(&#x27;close&#x27;);
+          stderrStream.removeAllListeners(&#x27;close&#x27;);
+
+          stdoutStream.removeAllListeners(&#x27;data&#x27;);
+          stderrStream.removeAllListeners(&#x27;data&#x27;);
+
+        }
+      };
+      return listener;
+    };
+    this.shell.stdout.on(&#x27;data&#x27;, testEnd(stdoutStream));
+    this.shell.stderr.on(&#x27;data&#x27;, testEnd(stderrStream));
+    this.shell.stdin.write(cmdStr);
+    this.shell.stdin.write(&#x27;\n&#x27;);
+    this.shell.stdin.write(&#x27;echo &quot;&#x27;+t+&#x27;&quot;&#x27;);
+    this.shell.stdin.write(&#x27;\n&#x27;);
+  };
+  ClucChildProcess.prototype.exec = function(cmdStr, then){
+    var procesStream = through();
+    var t = &#x27;__cluc__&#x27;+(new Date()).getTime();
+    debug(cmdStr);
+    debug(t);
+    var that = this;
+    var stdout = &#x27;&#x27;;
+    var stderr = &#x27;&#x27;;
+    var finish = function(){
+      if(that.shell){
+        debug(&#x27;finish&#x27;);
+        that.shell.stdout.removeListener(&#x27;data&#x27;, saveStdout);
+        that.shell.stderr.removeListener(&#x27;data&#x27;, saveStderr);
+        procesStream.emit(&#x27;close&#x27;);
+        procesStream.removeAllListeners(&#x27;close&#x27;);
+        then(null, stdout, stderr, procesStream);
+      }
+    };
+    var saveStdout = function(d){
+      debug(&#x27;&#x27;+d);
+      var isEnd = (&#x27;&#x27;+d).match(t);
+      if (isEnd){
+        d = (&#x27;&#x27;+d).replace(t,&#x27;&#x27;);
+      }
+      stdout += d;
+      if (isEnd){
+        finish();
+      }
+    };
+    var saveStderr = function(d){
+      debug(&#x27;&#x27;+d);
+      var isEnd = (&#x27;&#x27;+d).match(t);
+      if (isEnd){
+        d = (&#x27;&#x27;+d).replace(t,&#x27;&#x27;);
+      }
+      stderr += d;
+      if (isEnd){
+        finish();
+      }
+    };
+    this.shell.stdout.on(&#x27;data&#x27;, saveStdout);
+    this.shell.stderr.on(&#x27;data&#x27;, saveStderr);
+    this.shell.stdin.write(cmdStr);
+    this.shell.stdin.write(&#x27;\n&#x27;);
+    this.shell.stdin.write(&#x27;echo &quot;&#x27;+t+&#x27;&quot;&#x27;);
+    this.shell.stdin.write(&#x27;\n&#x27;);
+  };
+
+  ClucChildProcess.prototype.readFile = function(path, then){
+    fs.readFile(path, function(err, data){
+      if(then) then(err, &#x27;&#x27;+data);
+    });
+  };
+  ClucChildProcess.prototype.readFileSudo = function(path, then){
+    fs.readFile(path, function(err, data){
+      if(then) then(err, &#x27;&#x27;+data);
+    });
+  };
+  ClucChildProcess.prototype.streamReadFile = function(path, then){
+    fs.createReadStream(path,then);
+  };
+  ClucChildProcess.prototype.streamReadFileSudo = function(path, then){
+    fs.createReadStream(path,then);
+  };
+  ClucChildProcess.prototype.getFile = function(fromPath, toPath, then){
+    fs.copy(fromPath, toPath,then);
+  };
+  ClucChildProcess.prototype.ensureFileContains = function(path, content, then){
+    var stream = fs.createReadStream(path);
+    var found = false;
+    stream.on(&#x27;data&#x27;,function(d){
+      if(!found) found = !!(&#x27;&#x27;+d).match(content);
+    });
+    var writeFile = function(err){
+      if(!found){
+        fs.appendFile(path, content, function () {
+          then(err, found);
+        });
+      }else{
+        then(err, found);
+      }
+    };
+    stream.on(&#x27;error&#x27;, writeFile);
+    stream.on(&#x27;close&#x27;, writeFile);
+  };
+  ClucChildProcess.prototype.ensureFileContainsSudo = function(path, content, then){
+    var stream = fs.createReadStream(path);
+    var found = false;
+    stream.on(&#x27;data&#x27;,function(d){
+      if(found) found=!!(&#x27;&#x27;+d).match(content)
+    });
+    stream.on(&#x27;error&#x27;,function(err){
+      fs.appendFile(path, content, function () {
+        then(err, found);
+      });
+    });
+    stream.on(&#x27;close&#x27;,function(err){
+      fs.appendFile(path, content, function () {
+        then(err, found);
+      });
+    });
+  };
+  ClucChildProcess.prototype.putFile = function(path, toPath, then){
+    fs.copy(path, toPath, then);
+  };
+  ClucChildProcess.prototype.putFileSudo = function(path, toPath, then){
+    fs.copy(path, toPath, then);
+  };
+  ClucChildProcess.prototype.writeFile = function(path, content, then){
+    fs.writeFile(path, content, then);
+  };
+  ClucChildProcess.prototype.writeFileSudo = function(path, content, then){
+    fs.writeFile(path, content, then);
+  };
+  ClucChildProcess.prototype.fileExists = function(path, then){
+    fs.fileExists(path, then);
+  };
+  ClucChildProcess.prototype.fileExistsSudo = function(path, then){
+    fs.fileExists(path, then);
+  };
+  ClucChildProcess.prototype.rmdir = function(path, then){
+    fs.remove(path, then);
+  };
+  ClucChildProcess.prototype.rmdirSudo = function(path, then){
+    fs.remove(path, then);
+  };
+  ClucChildProcess.prototype.mktemp = function(suffix, then){
+    temp.mkdir({suffix: suffix||&#x27;mktemp&#x27;}, function(err, dirPath) {
+      if(then) then(err, dirPath);
+    });
+  };
+  ClucChildProcess.prototype.mkdir = function(path, then){
+    fs.mkdirs(path, then);
+  };
+  ClucChildProcess.prototype.mkdirSudo = function(path, then){
+    fs.mkdirs(path, then);
+  };
+  ClucChildProcess.prototype.ensureEmptyDir = function(path, then){
+    fs.emptyDir(path, then);
+  };
+  ClucChildProcess.prototype.ensureEmptyDirSudo = function(path, then){
+    fs.emptyDir(path, then);
+  };
+  ClucChildProcess.prototype.ensureOwnership = function(path, then){
+  };
+  ClucChildProcess.prototype.putDir = function(path, toPath, then){
+    fs.copy(path, toPath, then);
+  };
+  ClucChildProcess.prototype.putDirSudo = function(path, toPath, then){
+    fs.copy(path, toPath, then);
+  };
+  ClucChildProcess.prototype.getDir = function(path, toPath, then){
+    fs.copy(path, toPath, then);
+  };
+
+  ClucChildProcess.prototype.open = function(then){
+    if(!this.shell){
+      if (/^win/.test(process.platform) ) {
+        this.shell = child_process.spawn(&#x27;cmd&#x27;, []);
+      } else{
+        this.shell = child_process.spawn(&#x27;bash&#x27;, []);
+      }
+      this.shell.stdout.setMaxListeners(50);
+      this.shell.stderr.setMaxListeners(50);
+      this.shell.stdout.on(&#x27;close&#x27; , function(){
+        debug(&#x27;stdout closed&#x27;);
+      });
+      this.shell.stderr.on(&#x27;close&#x27; , function(){
+        debug(&#x27;stderr closed&#x27;);
+      });
+      this.shell.on(&#x27;close&#x27; , function(){
+        debug(&#x27;shell closed&#x27;);
+      });
+    }
+    if(then) then(null, this.shell);
+  };
+  ClucChildProcess.prototype.close = function(then){
+    if(this.shell){
+      this.shell.kill(&#x27;SIGINT&#x27;);
+      this.shell = null;
+    }
+    if(then) then();
+  };
+  return ClucChildProcess;
+})();
+
+module.exports = ClucChildProcess;
+
+    </pre>
+</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="../assets/vendor/prettify/prettify-min.js"></script>
+<script>prettyPrint();</script>
+<script src="../assets/js/yui-prettify.js"></script>
+<script src="../assets/../api.js"></script>
+<script src="../assets/js/api-filter.js"></script>
+<script src="../assets/js/api-list.js"></script>
+<script src="../assets/js/api-search.js"></script>
+<script src="../assets/js/apidocs.js"></script>
+</body>
+</html>

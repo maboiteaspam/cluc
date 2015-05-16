@@ -1,0 +1,1367 @@
+{
+    "project": {},
+    "files": {
+        "/home/maboiteaspam/Bureau/cluc/lib/cluc-childprocess-context.js": {
+            "name": "/home/maboiteaspam/Bureau/cluc/lib/cluc-childprocess-context.js",
+            "modules": {},
+            "classes": {
+                "ClucContext": 1
+            },
+            "fors": {},
+            "namespaces": {}
+        },
+        "/home/maboiteaspam/Bureau/cluc/lib/cluc-childprocess.js": {
+            "name": "/home/maboiteaspam/Bureau/cluc/lib/cluc-childprocess.js",
+            "modules": {},
+            "classes": {
+                "ClucChildProcess": 1
+            },
+            "fors": {},
+            "namespaces": {}
+        },
+        "/home/maboiteaspam/Bureau/cluc/lib/cluc-rules.js": {
+            "name": "/home/maboiteaspam/Bureau/cluc/lib/cluc-rules.js",
+            "modules": {},
+            "classes": {
+                "ClucRule": 1,
+                "": 1,
+                "ClucSuccess": 1,
+                "ClucMustNot": 1,
+                "ClucConfirm": 1,
+                "ClucWarn": 1,
+                "ClucWatch": 1,
+                "ClucSpin": 1,
+                "ClucSpinUntil": 1,
+                "ClucProgress": 1,
+                "ClucAnswer": 1,
+                "ClucDisplay": 1,
+                "ClucDieOnError": 1
+            },
+            "fors": {},
+            "namespaces": {}
+        },
+        "/home/maboiteaspam/Bureau/cluc/lib/cluc-ssh-context.js": {
+            "name": "/home/maboiteaspam/Bureau/cluc/lib/cluc-ssh-context.js",
+            "modules": {},
+            "classes": {
+                "ClucSSHContext": 1
+            },
+            "fors": {},
+            "namespaces": {}
+        },
+        "/home/maboiteaspam/Bureau/cluc/lib/cluc-ssh.js": {
+            "name": "/home/maboiteaspam/Bureau/cluc/lib/cluc-ssh.js",
+            "modules": {},
+            "classes": {
+                "ClucSsh": 1
+            },
+            "fors": {},
+            "namespaces": {}
+        },
+        "/home/maboiteaspam/Bureau/cluc/lib/cluc.js": {
+            "name": "/home/maboiteaspam/Bureau/cluc/lib/cluc.js",
+            "modules": {},
+            "classes": {
+                "Cluc": 1
+            },
+            "fors": {},
+            "namespaces": {}
+        }
+    },
+    "modules": {},
+    "classes": {
+        "ClucContext": {
+            "name": "ClucContext",
+            "shortname": "ClucContext",
+            "classitems": [],
+            "plugins": [],
+            "extensions": [],
+            "plugin_for": [],
+            "extension_for": [],
+            "file": "/home/maboiteaspam/Bureau/cluc/lib/cluc-childprocess-context.js",
+            "line": 12,
+            "description": "Context of a command\nHelps to analyze and respond\nto the input stream from spawned process"
+        },
+        "ClucChildProcess": {
+            "name": "ClucChildProcess",
+            "shortname": "ClucChildProcess",
+            "classitems": [],
+            "plugins": [],
+            "extensions": [],
+            "plugin_for": [],
+            "extension_for": [],
+            "file": "/home/maboiteaspam/Bureau/cluc/lib/cluc-childprocess.js",
+            "line": 12,
+            "description": "Executes commands on the local system"
+        },
+        "ClucRule": {
+            "name": "ClucRule",
+            "shortname": "ClucRule",
+            "classitems": [],
+            "plugins": [],
+            "extensions": [],
+            "plugin_for": [],
+            "extension_for": [],
+            "file": "/home/maboiteaspam/Bureau/cluc/lib/cluc-rules.js",
+            "line": 20,
+            "description": "Test output against a pattern\nthen save its states until the command has finished"
+        },
+        "": {
+            "file": "/home/maboiteaspam/Bureau/cluc/lib/cluc-rules.js",
+            "line": 110,
+            "description": "Displays success message\nif pattern matches\nOtherwise displays failure message"
+        },
+        "ClucSuccess": {
+            "name": "ClucSuccess",
+            "shortname": "ClucSuccess",
+            "classitems": [],
+            "plugins": [],
+            "extensions": [],
+            "plugin_for": [],
+            "extension_for": [],
+            "file": "/home/maboiteaspam/Bureau/cluc/lib/cluc-rules.js",
+            "line": 133,
+            "description": "Displays success message\nif pattern matches"
+        },
+        "ClucMustNot": {
+            "name": "ClucMustNot",
+            "shortname": "ClucMustNot",
+            "classitems": [],
+            "plugins": [],
+            "extensions": [],
+            "plugin_for": [],
+            "extension_for": [],
+            "file": "/home/maboiteaspam/Bureau/cluc/lib/cluc-rules.js",
+            "line": 153,
+            "description": "Displays failure message\nif pattern matches\nOtherwise displays success message"
+        },
+        "ClucConfirm": {
+            "name": "ClucConfirm",
+            "shortname": "ClucConfirm",
+            "classitems": [],
+            "plugins": [],
+            "extensions": [],
+            "plugin_for": [],
+            "extension_for": [],
+            "file": "/home/maboiteaspam/Bureau/cluc/lib/cluc-rules.js",
+            "line": 176,
+            "description": "Displays confirm message\nif pattern matches"
+        },
+        "ClucWarn": {
+            "name": "ClucWarn",
+            "shortname": "ClucWarn",
+            "classitems": [],
+            "plugins": [],
+            "extensions": [],
+            "plugin_for": [],
+            "extension_for": [],
+            "file": "/home/maboiteaspam/Bureau/cluc/lib/cluc-rules.js",
+            "line": 195,
+            "description": "Displays warning message\nif pattern matches"
+        },
+        "ClucWatch": {
+            "name": "ClucWatch",
+            "shortname": "ClucWatch",
+            "classitems": [],
+            "plugins": [],
+            "extensions": [],
+            "plugin_for": [],
+            "extension_for": [],
+            "file": "/home/maboiteaspam/Bureau/cluc/lib/cluc-rules.js",
+            "line": 210,
+            "description": "Displays the output\nWhen pattern matches"
+        },
+        "ClucSpin": {
+            "name": "ClucSpin",
+            "shortname": "ClucSpin",
+            "classitems": [],
+            "plugins": [],
+            "extensions": [],
+            "plugin_for": [],
+            "extension_for": [],
+            "file": "/home/maboiteaspam/Bureau/cluc/lib/cluc-rules.js",
+            "line": 226,
+            "description": "Displays a spinner\nwhile pattern matches"
+        },
+        "ClucSpinUntil": {
+            "name": "ClucSpinUntil",
+            "shortname": "ClucSpinUntil",
+            "classitems": [],
+            "plugins": [],
+            "extensions": [],
+            "plugin_for": [],
+            "extension_for": [],
+            "file": "/home/maboiteaspam/Bureau/cluc/lib/cluc-rules.js",
+            "line": 257,
+            "description": "Displays a spinner\nuntil pattern matches"
+        },
+        "ClucProgress": {
+            "name": "ClucProgress",
+            "shortname": "ClucProgress",
+            "classitems": [],
+            "plugins": [],
+            "extensions": [],
+            "plugin_for": [],
+            "extension_for": [],
+            "file": "/home/maboiteaspam/Bureau/cluc/lib/cluc-rules.js",
+            "line": 284,
+            "description": "Displays a progress\nwhile pattern matches"
+        },
+        "ClucAnswer": {
+            "name": "ClucAnswer",
+            "shortname": "ClucAnswer",
+            "classitems": [],
+            "plugins": [],
+            "extensions": [],
+            "plugin_for": [],
+            "extension_for": [],
+            "file": "/home/maboiteaspam/Bureau/cluc/lib/cluc-rules.js",
+            "line": 317,
+            "description": "Writes the stdin with provided answer\nWhen given pattern matches"
+        },
+        "ClucDisplay": {
+            "name": "ClucDisplay",
+            "shortname": "ClucDisplay",
+            "classitems": [],
+            "plugins": [],
+            "extensions": [],
+            "plugin_for": [],
+            "extension_for": [],
+            "file": "/home/maboiteaspam/Bureau/cluc/lib/cluc-rules.js",
+            "line": 335,
+            "description": "Displays the output\nWhen patterns has not previsouly matches"
+        },
+        "ClucDieOnError": {
+            "name": "ClucDieOnError",
+            "shortname": "ClucDieOnError",
+            "classitems": [],
+            "plugins": [],
+            "extensions": [],
+            "plugin_for": [],
+            "extension_for": [],
+            "file": "/home/maboiteaspam/Bureau/cluc/lib/cluc-rules.js",
+            "line": 358,
+            "description": "Throws an error\nWhen patterns match in stderr"
+        },
+        "ClucSSHContext": {
+            "name": "ClucSSHContext",
+            "shortname": "ClucSSHContext",
+            "classitems": [],
+            "plugins": [],
+            "extensions": [],
+            "plugin_for": [],
+            "extension_for": [],
+            "file": "/home/maboiteaspam/Bureau/cluc/lib/cluc-ssh-context.js",
+            "line": 6
+        },
+        "ClucSsh": {
+            "name": "ClucSsh",
+            "shortname": "ClucSsh",
+            "classitems": [],
+            "plugins": [],
+            "extensions": [],
+            "plugin_for": [],
+            "extension_for": [],
+            "file": "/home/maboiteaspam/Bureau/cluc/lib/cluc-ssh.js",
+            "line": 9,
+            "description": "Execute the commands on a remote machine over ssh"
+        },
+        "Cluc": {
+            "name": "Cluc",
+            "shortname": "Cluc",
+            "classitems": [],
+            "plugins": [],
+            "extensions": [],
+            "plugin_for": [],
+            "extension_for": [],
+            "file": "/home/maboiteaspam/Bureau/cluc/lib/cluc.js",
+            "line": 21,
+            "description": "Provide command line\nqueuing, execution and response"
+        }
+    },
+    "classitems": [
+        {
+            "file": "/home/maboiteaspam/Bureau/cluc/lib/cluc.js",
+            "line": 43,
+            "params": [
+                {
+                    "name": "cmd",
+                    "description": ""
+                },
+                {
+                    "name": "fn",
+                    "description": ""
+                }
+            ],
+            "return": {
+                "description": "",
+                "type": "Cluc"
+            },
+            "class": "Cluc"
+        },
+        {
+            "file": "/home/maboiteaspam/Bureau/cluc/lib/cluc.js",
+            "line": 54,
+            "params": [
+                {
+                    "name": "cmd",
+                    "description": ""
+                },
+                {
+                    "name": "fn",
+                    "description": ""
+                }
+            ],
+            "return": {
+                "description": "",
+                "type": "Cluc"
+            },
+            "class": "Cluc"
+        },
+        {
+            "file": "/home/maboiteaspam/Bureau/cluc/lib/cluc.js",
+            "line": 65,
+            "params": [
+                {
+                    "name": "cmd",
+                    "description": ""
+                },
+                {
+                    "name": "fn",
+                    "description": ""
+                }
+            ],
+            "return": {
+                "description": "",
+                "type": "Cluc"
+            },
+            "class": "Cluc"
+        },
+        {
+            "file": "/home/maboiteaspam/Bureau/cluc/lib/cluc.js",
+            "line": 76,
+            "type": "{Function}",
+            "class": "Cluc"
+        },
+        {
+            "file": "/home/maboiteaspam/Bureau/cluc/lib/cluc.js",
+            "line": 85,
+            "params": [
+                {
+                    "name": "path",
+                    "description": ""
+                },
+                {
+                    "name": "fn",
+                    "description": ""
+                }
+            ],
+            "return": {
+                "description": "",
+                "type": "Cluc"
+            },
+            "class": "Cluc"
+        },
+        {
+            "file": "/home/maboiteaspam/Bureau/cluc/lib/cluc.js",
+            "line": 97,
+            "params": [
+                {
+                    "name": "path",
+                    "description": ""
+                },
+                {
+                    "name": "fn",
+                    "description": ""
+                }
+            ],
+            "return": {
+                "description": "",
+                "type": "Cluc"
+            },
+            "class": "Cluc"
+        },
+        {
+            "file": "/home/maboiteaspam/Bureau/cluc/lib/cluc.js",
+            "line": 109,
+            "params": [
+                {
+                    "name": "path",
+                    "description": ""
+                },
+                {
+                    "name": "fn",
+                    "description": ""
+                }
+            ],
+            "return": {
+                "description": "",
+                "type": "Cluc"
+            },
+            "class": "Cluc"
+        },
+        {
+            "file": "/home/maboiteaspam/Bureau/cluc/lib/cluc.js",
+            "line": 121,
+            "params": [
+                {
+                    "name": "path",
+                    "description": ""
+                },
+                {
+                    "name": "fn",
+                    "description": ""
+                }
+            ],
+            "return": {
+                "description": "",
+                "type": "Cluc"
+            },
+            "class": "Cluc"
+        },
+        {
+            "file": "/home/maboiteaspam/Bureau/cluc/lib/cluc.js",
+            "line": 133,
+            "params": [
+                {
+                    "name": "remoteFile",
+                    "description": ""
+                },
+                {
+                    "name": "localPath",
+                    "description": ""
+                },
+                {
+                    "name": "fn",
+                    "description": ""
+                }
+            ],
+            "return": {
+                "description": "",
+                "type": "Cluc"
+            },
+            "class": "Cluc"
+        },
+        {
+            "file": "/home/maboiteaspam/Bureau/cluc/lib/cluc.js",
+            "line": 146,
+            "params": [
+                {
+                    "name": "remoteFile",
+                    "description": ""
+                },
+                {
+                    "name": "content",
+                    "description": ""
+                },
+                {
+                    "name": "fn",
+                    "description": ""
+                }
+            ],
+            "return": {
+                "description": "",
+                "type": "Cluc"
+            },
+            "class": "Cluc"
+        },
+        {
+            "file": "/home/maboiteaspam/Bureau/cluc/lib/cluc.js",
+            "line": 159,
+            "params": [
+                {
+                    "name": "remoteFile",
+                    "description": ""
+                },
+                {
+                    "name": "content",
+                    "description": ""
+                },
+                {
+                    "name": "fn",
+                    "description": ""
+                }
+            ],
+            "return": {
+                "description": "",
+                "type": "Cluc"
+            },
+            "class": "Cluc"
+        },
+        {
+            "file": "/home/maboiteaspam/Bureau/cluc/lib/cluc.js",
+            "line": 172,
+            "params": [
+                {
+                    "name": "localFile",
+                    "description": ""
+                },
+                {
+                    "name": "remoteFile",
+                    "description": ""
+                },
+                {
+                    "name": "fn",
+                    "description": ""
+                }
+            ],
+            "return": {
+                "description": "",
+                "type": "Cluc"
+            },
+            "class": "Cluc"
+        },
+        {
+            "file": "/home/maboiteaspam/Bureau/cluc/lib/cluc.js",
+            "line": 185,
+            "params": [
+                {
+                    "name": "localFile",
+                    "description": ""
+                },
+                {
+                    "name": "remoteFile",
+                    "description": ""
+                },
+                {
+                    "name": "fn",
+                    "description": ""
+                }
+            ],
+            "return": {
+                "description": "",
+                "type": "Cluc"
+            },
+            "class": "Cluc"
+        },
+        {
+            "file": "/home/maboiteaspam/Bureau/cluc/lib/cluc.js",
+            "line": 198,
+            "params": [
+                {
+                    "name": "remoteFile",
+                    "description": ""
+                },
+                {
+                    "name": "content",
+                    "description": ""
+                },
+                {
+                    "name": "fn",
+                    "description": ""
+                }
+            ],
+            "return": {
+                "description": "",
+                "type": "Cluc"
+            },
+            "class": "Cluc"
+        },
+        {
+            "file": "/home/maboiteaspam/Bureau/cluc/lib/cluc.js",
+            "line": 211,
+            "params": [
+                {
+                    "name": "remoteFile",
+                    "description": ""
+                },
+                {
+                    "name": "content",
+                    "description": ""
+                },
+                {
+                    "name": "fn",
+                    "description": ""
+                }
+            ],
+            "return": {
+                "description": "",
+                "type": "Cluc"
+            },
+            "class": "Cluc"
+        },
+        {
+            "file": "/home/maboiteaspam/Bureau/cluc/lib/cluc.js",
+            "line": 224,
+            "params": [
+                {
+                    "name": "remoteFile",
+                    "description": ""
+                },
+                {
+                    "name": "fn",
+                    "description": ""
+                }
+            ],
+            "return": {
+                "description": "",
+                "type": "Cluc"
+            },
+            "class": "Cluc"
+        },
+        {
+            "file": "/home/maboiteaspam/Bureau/cluc/lib/cluc.js",
+            "line": 236,
+            "params": [
+                {
+                    "name": "remoteFile",
+                    "description": ""
+                },
+                {
+                    "name": "fn",
+                    "description": ""
+                }
+            ],
+            "return": {
+                "description": "",
+                "type": "Cluc"
+            },
+            "class": "Cluc"
+        },
+        {
+            "file": "/home/maboiteaspam/Bureau/cluc/lib/cluc.js",
+            "line": 248,
+            "params": [
+                {
+                    "name": "remoteFile",
+                    "description": ""
+                },
+                {
+                    "name": "fn",
+                    "description": ""
+                }
+            ],
+            "return": {
+                "description": "",
+                "type": "Cluc"
+            },
+            "class": "Cluc"
+        },
+        {
+            "file": "/home/maboiteaspam/Bureau/cluc/lib/cluc.js",
+            "line": 260,
+            "params": [
+                {
+                    "name": "remoteFile",
+                    "description": ""
+                },
+                {
+                    "name": "fn",
+                    "description": ""
+                }
+            ],
+            "return": {
+                "description": "",
+                "type": "Cluc"
+            },
+            "class": "Cluc"
+        },
+        {
+            "file": "/home/maboiteaspam/Bureau/cluc/lib/cluc.js",
+            "line": 272,
+            "params": [
+                {
+                    "name": "remoteFile",
+                    "description": ""
+                },
+                {
+                    "name": "fn",
+                    "description": ""
+                }
+            ],
+            "return": {
+                "description": "",
+                "type": "Cluc"
+            },
+            "class": "Cluc"
+        },
+        {
+            "file": "/home/maboiteaspam/Bureau/cluc/lib/cluc.js",
+            "line": 284,
+            "params": [
+                {
+                    "name": "remoteFile",
+                    "description": ""
+                },
+                {
+                    "name": "fn",
+                    "description": ""
+                }
+            ],
+            "return": {
+                "description": "",
+                "type": "Cluc"
+            },
+            "class": "Cluc"
+        },
+        {
+            "file": "/home/maboiteaspam/Bureau/cluc/lib/cluc.js",
+            "line": 296,
+            "params": [
+                {
+                    "name": "remoteFile",
+                    "description": ""
+                },
+                {
+                    "name": "fn",
+                    "description": ""
+                }
+            ],
+            "return": {
+                "description": "",
+                "type": "Cluc"
+            },
+            "class": "Cluc"
+        },
+        {
+            "file": "/home/maboiteaspam/Bureau/cluc/lib/cluc.js",
+            "line": 308,
+            "params": [
+                {
+                    "name": "remoteFile",
+                    "description": ""
+                },
+                {
+                    "name": "fn",
+                    "description": ""
+                }
+            ],
+            "return": {
+                "description": "",
+                "type": "Cluc"
+            },
+            "class": "Cluc"
+        },
+        {
+            "file": "/home/maboiteaspam/Bureau/cluc/lib/cluc.js",
+            "line": 320,
+            "params": [
+                {
+                    "name": "remoteFile",
+                    "description": ""
+                },
+                {
+                    "name": "fn",
+                    "description": ""
+                }
+            ],
+            "return": {
+                "description": "",
+                "type": "Cluc"
+            },
+            "class": "Cluc"
+        },
+        {
+            "file": "/home/maboiteaspam/Bureau/cluc/lib/cluc.js",
+            "line": 332,
+            "params": [
+                {
+                    "name": "remoteFile",
+                    "description": ""
+                },
+                {
+                    "name": "fn",
+                    "description": ""
+                }
+            ],
+            "return": {
+                "description": "",
+                "type": "Cluc"
+            },
+            "class": "Cluc"
+        },
+        {
+            "file": "/home/maboiteaspam/Bureau/cluc/lib/cluc.js",
+            "line": 344,
+            "params": [
+                {
+                    "name": "localPath",
+                    "description": ""
+                },
+                {
+                    "name": "remotePath",
+                    "description": ""
+                },
+                {
+                    "name": "fn",
+                    "description": ""
+                }
+            ],
+            "return": {
+                "description": "",
+                "type": "Cluc"
+            },
+            "class": "Cluc"
+        },
+        {
+            "file": "/home/maboiteaspam/Bureau/cluc/lib/cluc.js",
+            "line": 357,
+            "params": [
+                {
+                    "name": "localPath",
+                    "description": ""
+                },
+                {
+                    "name": "remotePath",
+                    "description": ""
+                },
+                {
+                    "name": "fn",
+                    "description": ""
+                }
+            ],
+            "return": {
+                "description": "",
+                "type": "Cluc"
+            },
+            "class": "Cluc"
+        },
+        {
+            "file": "/home/maboiteaspam/Bureau/cluc/lib/cluc.js",
+            "line": 370,
+            "params": [
+                {
+                    "name": "remotePath",
+                    "description": ""
+                },
+                {
+                    "name": "localPath",
+                    "description": ""
+                },
+                {
+                    "name": "fn",
+                    "description": ""
+                }
+            ],
+            "return": {
+                "description": "",
+                "type": "Cluc"
+            },
+            "class": "Cluc"
+        },
+        {
+            "file": "/home/maboiteaspam/Bureau/cluc/lib/cluc.js",
+            "line": 385,
+            "return": {
+                "description": "",
+                "type": "Cluc"
+            },
+            "class": "Cluc"
+        },
+        {
+            "file": "/home/maboiteaspam/Bureau/cluc/lib/cluc.js",
+            "line": 395,
+            "params": [
+                {
+                    "name": "options",
+                    "description": ""
+                },
+                {
+                    "name": "fn",
+                    "description": ""
+                }
+            ],
+            "return": {
+                "description": "",
+                "type": "Cluc"
+            },
+            "class": "Cluc"
+        },
+        {
+            "file": "/home/maboiteaspam/Bureau/cluc/lib/cluc.js",
+            "line": 406,
+            "params": [
+                {
+                    "name": "message",
+                    "description": ""
+                },
+                {
+                    "name": "choices",
+                    "description": ""
+                },
+                {
+                    "name": "then",
+                    "description": ""
+                }
+            ],
+            "return": {
+                "description": "",
+                "type": "*"
+            },
+            "class": "Cluc"
+        },
+        {
+            "file": "/home/maboiteaspam/Bureau/cluc/lib/cluc.js",
+            "line": 426,
+            "params": [
+                {
+                    "name": "skipNext",
+                    "description": ""
+                }
+            ],
+            "return": {
+                "description": "",
+                "type": "*"
+            },
+            "class": "Cluc"
+        },
+        {
+            "file": "/home/maboiteaspam/Bureau/cluc/lib/cluc.js",
+            "line": 436,
+            "params": [
+                {
+                    "name": "object",
+                    "description": ""
+                },
+                {
+                    "name": "fn",
+                    "description": ""
+                }
+            ],
+            "return": {
+                "description": "",
+                "type": "Cluc"
+            },
+            "class": "Cluc"
+        },
+        {
+            "file": "/home/maboiteaspam/Bureau/cluc/lib/cluc.js",
+            "line": 456,
+            "params": [
+                {
+                    "name": "writeStream",
+                    "description": ""
+                }
+            ],
+            "return": {
+                "description": "",
+                "type": "Cluc"
+            },
+            "class": "Cluc"
+        },
+        {
+            "file": "/home/maboiteaspam/Bureau/cluc/lib/cluc.js",
+            "line": 467,
+            "params": [
+                {
+                    "name": "other",
+                    "description": ""
+                }
+            ],
+            "return": {
+                "description": "",
+                "type": "Cluc"
+            },
+            "class": "Cluc"
+        },
+        {
+            "file": "/home/maboiteaspam/Bureau/cluc/lib/cluc.js",
+            "line": 480,
+            "params": [
+                {
+                    "name": "transport",
+                    "description": ""
+                },
+                {
+                    "name": "then",
+                    "description": ""
+                }
+            ],
+            "return": {
+                "description": "",
+                "type": "Boolean"
+            },
+            "class": "Cluc"
+        },
+        {
+            "file": "/home/maboiteaspam/Bureau/cluc/lib/cluc.js",
+            "line": 664,
+            "params": [
+                {
+                    "name": "transport",
+                    "description": ""
+                },
+                {
+                    "name": "then",
+                    "description": ""
+                }
+            ],
+            "return": {
+                "description": "",
+                "type": "Cluc"
+            },
+            "class": "Cluc"
+        },
+        {
+            "file": "/home/maboiteaspam/Bureau/cluc/lib/cluc.js",
+            "line": 686,
+            "params": [
+                {
+                    "name": "err",
+                    "description": ""
+                }
+            ],
+            "return": {
+                "description": "",
+                "type": "Function"
+            },
+            "class": "Cluc"
+        },
+        {
+            "file": "/home/maboiteaspam/Bureau/cluc/lib/cluc.js",
+            "line": 710,
+            "params": [
+                {
+                    "name": "message",
+                    "description": ""
+                },
+                {
+                    "name": "def",
+                    "description": ""
+                }
+            ],
+            "return": {
+                "description": "",
+                "type": "Function"
+            },
+            "class": "Cluc"
+        },
+        {
+            "file": "/home/maboiteaspam/Bureau/cluc/lib/cluc.js",
+            "line": 735,
+            "params": [
+                {
+                    "name": "message",
+                    "description": ""
+                },
+                {
+                    "name": "def",
+                    "description": ""
+                }
+            ],
+            "return": {
+                "description": "",
+                "type": "Function"
+            },
+            "class": "Cluc"
+        }
+    ],
+    "warnings": [
+        {
+            "message": "replacing incorrect tag: returns with return",
+            "line": " /home/maboiteaspam/Bureau/cluc/lib/cluc.js:43"
+        },
+        {
+            "message": "replacing incorrect tag: returns with return",
+            "line": " /home/maboiteaspam/Bureau/cluc/lib/cluc.js:54"
+        },
+        {
+            "message": "replacing incorrect tag: returns with return",
+            "line": " /home/maboiteaspam/Bureau/cluc/lib/cluc.js:65"
+        },
+        {
+            "message": "replacing incorrect tag: returns with return",
+            "line": " /home/maboiteaspam/Bureau/cluc/lib/cluc.js:85"
+        },
+        {
+            "message": "replacing incorrect tag: returns with return",
+            "line": " /home/maboiteaspam/Bureau/cluc/lib/cluc.js:97"
+        },
+        {
+            "message": "replacing incorrect tag: returns with return",
+            "line": " /home/maboiteaspam/Bureau/cluc/lib/cluc.js:109"
+        },
+        {
+            "message": "replacing incorrect tag: returns with return",
+            "line": " /home/maboiteaspam/Bureau/cluc/lib/cluc.js:121"
+        },
+        {
+            "message": "replacing incorrect tag: returns with return",
+            "line": " /home/maboiteaspam/Bureau/cluc/lib/cluc.js:133"
+        },
+        {
+            "message": "replacing incorrect tag: returns with return",
+            "line": " /home/maboiteaspam/Bureau/cluc/lib/cluc.js:146"
+        },
+        {
+            "message": "replacing incorrect tag: returns with return",
+            "line": " /home/maboiteaspam/Bureau/cluc/lib/cluc.js:159"
+        },
+        {
+            "message": "replacing incorrect tag: returns with return",
+            "line": " /home/maboiteaspam/Bureau/cluc/lib/cluc.js:172"
+        },
+        {
+            "message": "replacing incorrect tag: returns with return",
+            "line": " /home/maboiteaspam/Bureau/cluc/lib/cluc.js:185"
+        },
+        {
+            "message": "replacing incorrect tag: returns with return",
+            "line": " /home/maboiteaspam/Bureau/cluc/lib/cluc.js:198"
+        },
+        {
+            "message": "replacing incorrect tag: returns with return",
+            "line": " /home/maboiteaspam/Bureau/cluc/lib/cluc.js:211"
+        },
+        {
+            "message": "replacing incorrect tag: returns with return",
+            "line": " /home/maboiteaspam/Bureau/cluc/lib/cluc.js:224"
+        },
+        {
+            "message": "replacing incorrect tag: returns with return",
+            "line": " /home/maboiteaspam/Bureau/cluc/lib/cluc.js:236"
+        },
+        {
+            "message": "replacing incorrect tag: returns with return",
+            "line": " /home/maboiteaspam/Bureau/cluc/lib/cluc.js:248"
+        },
+        {
+            "message": "replacing incorrect tag: returns with return",
+            "line": " /home/maboiteaspam/Bureau/cluc/lib/cluc.js:260"
+        },
+        {
+            "message": "replacing incorrect tag: returns with return",
+            "line": " /home/maboiteaspam/Bureau/cluc/lib/cluc.js:272"
+        },
+        {
+            "message": "replacing incorrect tag: returns with return",
+            "line": " /home/maboiteaspam/Bureau/cluc/lib/cluc.js:284"
+        },
+        {
+            "message": "replacing incorrect tag: returns with return",
+            "line": " /home/maboiteaspam/Bureau/cluc/lib/cluc.js:296"
+        },
+        {
+            "message": "replacing incorrect tag: returns with return",
+            "line": " /home/maboiteaspam/Bureau/cluc/lib/cluc.js:308"
+        },
+        {
+            "message": "replacing incorrect tag: returns with return",
+            "line": " /home/maboiteaspam/Bureau/cluc/lib/cluc.js:320"
+        },
+        {
+            "message": "replacing incorrect tag: returns with return",
+            "line": " /home/maboiteaspam/Bureau/cluc/lib/cluc.js:332"
+        },
+        {
+            "message": "replacing incorrect tag: returns with return",
+            "line": " /home/maboiteaspam/Bureau/cluc/lib/cluc.js:344"
+        },
+        {
+            "message": "replacing incorrect tag: returns with return",
+            "line": " /home/maboiteaspam/Bureau/cluc/lib/cluc.js:357"
+        },
+        {
+            "message": "replacing incorrect tag: returns with return",
+            "line": " /home/maboiteaspam/Bureau/cluc/lib/cluc.js:370"
+        },
+        {
+            "message": "replacing incorrect tag: returns with return",
+            "line": " /home/maboiteaspam/Bureau/cluc/lib/cluc.js:385"
+        },
+        {
+            "message": "replacing incorrect tag: returns with return",
+            "line": " /home/maboiteaspam/Bureau/cluc/lib/cluc.js:395"
+        },
+        {
+            "message": "replacing incorrect tag: returns with return",
+            "line": " /home/maboiteaspam/Bureau/cluc/lib/cluc.js:406"
+        },
+        {
+            "message": "replacing incorrect tag: returns with return",
+            "line": " /home/maboiteaspam/Bureau/cluc/lib/cluc.js:426"
+        },
+        {
+            "message": "replacing incorrect tag: returns with return",
+            "line": " /home/maboiteaspam/Bureau/cluc/lib/cluc.js:436"
+        },
+        {
+            "message": "replacing incorrect tag: returns with return",
+            "line": " /home/maboiteaspam/Bureau/cluc/lib/cluc.js:456"
+        },
+        {
+            "message": "replacing incorrect tag: returns with return",
+            "line": " /home/maboiteaspam/Bureau/cluc/lib/cluc.js:467"
+        },
+        {
+            "message": "replacing incorrect tag: returns with return",
+            "line": " /home/maboiteaspam/Bureau/cluc/lib/cluc.js:480"
+        },
+        {
+            "message": "replacing incorrect tag: returns with return",
+            "line": " /home/maboiteaspam/Bureau/cluc/lib/cluc.js:664"
+        },
+        {
+            "message": "replacing incorrect tag: returns with return",
+            "line": " /home/maboiteaspam/Bureau/cluc/lib/cluc.js:686"
+        },
+        {
+            "message": "replacing incorrect tag: returns with return",
+            "line": " /home/maboiteaspam/Bureau/cluc/lib/cluc.js:710"
+        },
+        {
+            "message": "replacing incorrect tag: returns with return",
+            "line": " /home/maboiteaspam/Bureau/cluc/lib/cluc.js:735"
+        },
+        {
+            "message": "Missing item type",
+            "line": " /home/maboiteaspam/Bureau/cluc/lib/cluc.js:43"
+        },
+        {
+            "message": "Missing item type",
+            "line": " /home/maboiteaspam/Bureau/cluc/lib/cluc.js:54"
+        },
+        {
+            "message": "Missing item type",
+            "line": " /home/maboiteaspam/Bureau/cluc/lib/cluc.js:65"
+        },
+        {
+            "message": "Missing item type",
+            "line": " /home/maboiteaspam/Bureau/cluc/lib/cluc.js:76"
+        },
+        {
+            "message": "Missing item type",
+            "line": " /home/maboiteaspam/Bureau/cluc/lib/cluc.js:85"
+        },
+        {
+            "message": "Missing item type",
+            "line": " /home/maboiteaspam/Bureau/cluc/lib/cluc.js:97"
+        },
+        {
+            "message": "Missing item type",
+            "line": " /home/maboiteaspam/Bureau/cluc/lib/cluc.js:109"
+        },
+        {
+            "message": "Missing item type",
+            "line": " /home/maboiteaspam/Bureau/cluc/lib/cluc.js:121"
+        },
+        {
+            "message": "Missing item type",
+            "line": " /home/maboiteaspam/Bureau/cluc/lib/cluc.js:133"
+        },
+        {
+            "message": "Missing item type",
+            "line": " /home/maboiteaspam/Bureau/cluc/lib/cluc.js:146"
+        },
+        {
+            "message": "Missing item type",
+            "line": " /home/maboiteaspam/Bureau/cluc/lib/cluc.js:159"
+        },
+        {
+            "message": "Missing item type",
+            "line": " /home/maboiteaspam/Bureau/cluc/lib/cluc.js:172"
+        },
+        {
+            "message": "Missing item type",
+            "line": " /home/maboiteaspam/Bureau/cluc/lib/cluc.js:185"
+        },
+        {
+            "message": "Missing item type",
+            "line": " /home/maboiteaspam/Bureau/cluc/lib/cluc.js:198"
+        },
+        {
+            "message": "Missing item type",
+            "line": " /home/maboiteaspam/Bureau/cluc/lib/cluc.js:211"
+        },
+        {
+            "message": "Missing item type",
+            "line": " /home/maboiteaspam/Bureau/cluc/lib/cluc.js:224"
+        },
+        {
+            "message": "Missing item type",
+            "line": " /home/maboiteaspam/Bureau/cluc/lib/cluc.js:236"
+        },
+        {
+            "message": "Missing item type",
+            "line": " /home/maboiteaspam/Bureau/cluc/lib/cluc.js:248"
+        },
+        {
+            "message": "Missing item type",
+            "line": " /home/maboiteaspam/Bureau/cluc/lib/cluc.js:260"
+        },
+        {
+            "message": "Missing item type",
+            "line": " /home/maboiteaspam/Bureau/cluc/lib/cluc.js:272"
+        },
+        {
+            "message": "Missing item type",
+            "line": " /home/maboiteaspam/Bureau/cluc/lib/cluc.js:284"
+        },
+        {
+            "message": "Missing item type",
+            "line": " /home/maboiteaspam/Bureau/cluc/lib/cluc.js:296"
+        },
+        {
+            "message": "Missing item type",
+            "line": " /home/maboiteaspam/Bureau/cluc/lib/cluc.js:308"
+        },
+        {
+            "message": "Missing item type",
+            "line": " /home/maboiteaspam/Bureau/cluc/lib/cluc.js:320"
+        },
+        {
+            "message": "Missing item type",
+            "line": " /home/maboiteaspam/Bureau/cluc/lib/cluc.js:332"
+        },
+        {
+            "message": "Missing item type",
+            "line": " /home/maboiteaspam/Bureau/cluc/lib/cluc.js:344"
+        },
+        {
+            "message": "Missing item type",
+            "line": " /home/maboiteaspam/Bureau/cluc/lib/cluc.js:357"
+        },
+        {
+            "message": "Missing item type",
+            "line": " /home/maboiteaspam/Bureau/cluc/lib/cluc.js:370"
+        },
+        {
+            "message": "Missing item type",
+            "line": " /home/maboiteaspam/Bureau/cluc/lib/cluc.js:385"
+        },
+        {
+            "message": "Missing item type",
+            "line": " /home/maboiteaspam/Bureau/cluc/lib/cluc.js:395"
+        },
+        {
+            "message": "Missing item type",
+            "line": " /home/maboiteaspam/Bureau/cluc/lib/cluc.js:406"
+        },
+        {
+            "message": "Missing item type",
+            "line": " /home/maboiteaspam/Bureau/cluc/lib/cluc.js:426"
+        },
+        {
+            "message": "Missing item type",
+            "line": " /home/maboiteaspam/Bureau/cluc/lib/cluc.js:436"
+        },
+        {
+            "message": "Missing item type",
+            "line": " /home/maboiteaspam/Bureau/cluc/lib/cluc.js:456"
+        },
+        {
+            "message": "Missing item type",
+            "line": " /home/maboiteaspam/Bureau/cluc/lib/cluc.js:467"
+        },
+        {
+            "message": "Missing item type",
+            "line": " /home/maboiteaspam/Bureau/cluc/lib/cluc.js:480"
+        },
+        {
+            "message": "Missing item type",
+            "line": " /home/maboiteaspam/Bureau/cluc/lib/cluc.js:664"
+        },
+        {
+            "message": "Missing item type",
+            "line": " /home/maboiteaspam/Bureau/cluc/lib/cluc.js:686"
+        },
+        {
+            "message": "Missing item type",
+            "line": " /home/maboiteaspam/Bureau/cluc/lib/cluc.js:710"
+        },
+        {
+            "message": "Missing item type",
+            "line": " /home/maboiteaspam/Bureau/cluc/lib/cluc.js:735"
+        }
+    ]
+}
