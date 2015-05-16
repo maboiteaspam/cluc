@@ -592,3 +592,30 @@ describe('ensureFileContains', function(){
       });
   });
 });
+
+describe('captureValue', function(){
+  it('can capture data from output and save its value', function(done){
+    var t = ''+Date.now();
+    var doneCnt = 0;
+    var line = (new Cluc())
+      .exec('node -v', function(err){
+        if(err) log.error(err);
+        (!!err).should.be.false;
+        doneCnt++;
+        this.captureValue('nodeVersion', /([0-9]+\.[0-9]+(\.[0-9]+)?)/);
+
+      }).then(function(next){
+        console.error(line.savedValues);
+        ('nodeVersion' in line.savedValues).should.be.true;
+        line.savedValues.nodeVersion.should.match(/([0-9]+\.[0-9]+(\.[0-9]+)?)/);
+        next();
+
+      }).exec('echo <%= quote(nodeVersion) %>', function(){
+        this.display();
+      }).run(new ClucProcess(), function(err){
+        doneCnt.should.eql(1);
+        if(err) return done(err);
+        done();
+      });
+  });
+});
